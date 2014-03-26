@@ -1,0 +1,7 @@
+C:\Users\bope\Desktop\mod12-30\obj\x86\Client\Assembly-CSharp.csprojResolveAssemblyReference.cache
+C:\Users\bope\Desktop\12-31-2013II\AoTTG_Data\Managed\Assembly-CSharp.dll
+C:\Users\bope\Desktop\12-31-2013II\AoTTG_Data\Managed\Assembly-CSharp.pdb
+C:\Users\bope\Desktop\mod12-30\obj\x86\Client\Assembly-CSharp.dll
+C:\Users\bope\Desktop\mod12-30\obj\x86\Client\Assembly-CSharp.pdb
+C:\Users\bope\Desktop\12-31-2013II\AoT_Data\Managed\Assembly-CSharp.dll
+C:\Users\bope\Desktop\12-31-2013II\AoT_Data\Managed\Assembly-CSharp.pdb

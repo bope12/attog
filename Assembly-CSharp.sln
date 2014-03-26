@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{C864F0B4-10B4-4CE9-A355-46716C594794}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Client|x86 = Client|x86
+		Debug|x86 = Debug|x86
+		Server|x86 = Server|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C864F0B4-10B4-4CE9-A355-46716C594794}.Client|x86.ActiveCfg = Client|x86
+		{C864F0B4-10B4-4CE9-A355-46716C594794}.Client|x86.Build.0 = Client|x86
+		{C864F0B4-10B4-4CE9-A355-46716C594794}.Debug|x86.ActiveCfg = Debug|x86
+		{C864F0B4-10B4-4CE9-A355-46716C594794}.Debug|x86.Build.0 = Debug|x86
+		{C864F0B4-10B4-4CE9-A355-46716C594794}.Server|x86.ActiveCfg = Server|x86
+		{C864F0B4-10B4-4CE9-A355-46716C594794}.Server|x86.Build.0 = Server|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
