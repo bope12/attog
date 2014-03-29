@@ -1452,7 +1452,7 @@ public class TITAN : MonoBehaviour
     private void setLevel(float level, int AI)
     {
         this.myLevel = level;
-        this.myLevel = Mathf.Clamp(this.myLevel, 0.7f, 3f);
+        this.myLevel = Mathf.Clamp(this.myLevel, 0.7f, 6f);
         this.attackWait += UnityEngine.Random.Range((float) 0f, (float) 2f);
         this.chaseDistance += this.myLevel * 10f;
         base.transform.localScale = new Vector3(this.myLevel, this.myLevel, this.myLevel);
