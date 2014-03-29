@@ -5,3 +5,8 @@ C:\Users\bope\Desktop\mod12-30\obj\x86\Server\Assembly-CSharp.dll
 C:\Users\bope\Desktop\mod12-30\obj\x86\Server\Assembly-CSharp.pdb
 C:\Users\bope\Desktop\12-31-2013II\AoT_Data\Managed\Assembly-CSharp.dll
 C:\Users\bope\Desktop\12-31-2013II\AoT_Data\Managed\Assembly-CSharp.pdb
+C:\Users\firei_000\Documents\GitHub\12-31-2013II\AoT_Data\Managed\Assembly-CSharp.dll
+C:\Users\firei_000\Documents\GitHub\12-31-2013II\AoT_Data\Managed\Assembly-CSharp.pdb
+C:\Users\firei_000\Documents\GitHub\attog\obj\x86\Server\Assembly-CSharp.csprojResolveAssemblyReference.cache
+C:\Users\firei_000\Documents\GitHub\attog\obj\x86\Server\Assembly-CSharp.dll
+C:\Users\firei_000\Documents\GitHub\attog\obj\x86\Server\Assembly-CSharp.pdb

@@ -400,7 +400,7 @@ public class FengMultiplayerScript : MonoBehaviour
             {
                 if(this.players[i] != null)
                 {
-                    if (!this.players[i].dead)
+                    if (!this.players[i].dead || this.players[i].rcon==true)
                     {
                         if (this.players[i].play.transform.position.ToString("G5") == pos[i].ToString("G5") && !(this.players[i].play.networkView.isMine))
                         {
