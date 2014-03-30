@@ -272,55 +272,6 @@ public class FengChatInput : MonoBehaviour
                 else
                 GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().myLastHero = str2;
             }
-            else if (this.mInput.text.StartsWith("/test"))
-            {
-                foreach (GameObject obj2 in GameObject.FindGameObjectsWithTag("Player"))
-                {
-                    if (obj2.GetComponent<TITAN_EREN>())
-                        obj2.GetComponent<TITAN_EREN>().rockPhase = 6;
-                }
-                GC.Collect();
-                Resources.UnloadUnusedAssets();
-                String[] b = Environment.GetCommandLineArgs();
-                string put = "";
-                for (int i = 1; i < b.Length; i++)
-                    put += b[i] + " ";
-                DebugConsole.Log(put);
-                string model = "mikasa";
-                string name = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().myLastHero;
-
-                if (name == "LEVI")
-                {
-                    model = "levi";
-                }
-                else if (name == "ARMIN")
-                {
-                    model = "armin";
-                }
-                else if (name == "MARCO")
-                {
-                    model = "marco";
-                }
-                else if (name == "JEAN")
-                {
-                    model = "jean";
-                }
-                else if (name == "EREN")
-                {
-                    model = "eren";
-                }
-                else if (name == "SASHA")
-                {
-                    model = "sasha";
-                }
-                else if (name == "PETRA")
-                {
-                    model = "petra";
-                }
-                GameObject.Find("skill_cd_bottom").transform.localPosition = new Vector3(0f, (-Screen.height) + 5f, 0f);
-                GameObject.Find("GasUI").transform.localPosition = GameObject.Find("skill_cd_bottom").transform.localPosition;
-                GameObject.Find("skill_cd_" + model).transform.localPosition = GameObject.Find("skill_cd_bottom").transform.localPosition;
-            }
             else if (this.mInput.text.StartsWith("/hud"))
             {
                 GameObject.Find("MultiplayerManager").networkView.RPC("info", RPCMode.Server, true);
