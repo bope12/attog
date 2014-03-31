@@ -533,8 +533,13 @@ public class DebugConsole : MonoBehaviour
 
         this.RegisterCommandCallback("close", CMDClose);
         this.RegisterCommandCallback("say", CMDsay);
+        this.RegisterCommandCallback("banlist", CMDbanlist);
+        this.RegisterCommandCallback("ban", CMDban);
+        this.RegisterCommandCallback("addban", CMDbanadd);
+        this.RegisterCommandCallback("removeban", CMDbanremove);
         this.RegisterCommandCallback("server", CMDserver);
         #if DEBUG
+        this.RegisterCommandCallback("export", CMDexport);
         this.RegisterCommandCallback("refil", CMDrefil);
         this.RegisterCommandCallback("view", CMDmod);
         this.RegisterCommandCallback("lm", CMDlm);
@@ -904,6 +909,36 @@ public class DebugConsole : MonoBehaviour
     object CMDsay(params string[] args)
     {
         GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().handlecmd("say", args);
+
+        return "";
+    }
+    object CMDbanlist(params string[] args)
+    {
+        GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().handlecmd("blist", args);
+
+        return "";
+    }
+    object CMDban(params string[] args)
+    {
+        GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().handlecmd("ban", args);
+
+        return "";
+    }
+    object CMDbanadd(params string[] args)
+    {
+        GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().handlecmd("bana", args);
+
+        return "";
+    }
+    object CMDbanremove(params string[] args)
+    {
+        GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().handlecmd("banr", args);
+
+        return "";
+    }
+    object CMDexport(params string[] args)
+    {
+        GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().handlecmd("export", args);
 
         return "";
     }

@@ -97,6 +97,7 @@ public class FengMultiplayerScript : MonoBehaviour
     public bool isNightmodeEnforced = false;
     public bool nohook = false;
     Vector3[] pos;
+    List<BanInfo> Banlist = new List<BanInfo>();
      #if DEBUG
         public bool lawn = false;
         public bool dick = false;
@@ -154,7 +155,63 @@ public class FengMultiplayerScript : MonoBehaviour
             serverName = put;
             MasterServer.RegisterHost("AOTTG", "[" + map + "]" + serverName, string.Empty);
         }
-    #if DEBUG
+        else if (cmd == "blist")
+        {
+            foreach (BanInfo ban in Banlist)
+            {
+                DebugConsole.Log(ban.ipaddrese + ": " + ban.reason + " For:" + (ban.hours / 10000000 / 3600).ToString() + " hours");
+            }
+        }
+        else if(cmd == "export")
+        {
+            //EXPORT BANLIST qsd1
+            FileStream fss = new FileStream("BanExport.dat", FileMode.Create);
+            BinaryFormatter formatter = new BinaryFormatter();
+            try
+            {
+                formatter.Serialize(fss, Banlist);
+            }
+            catch (SerializationException e)
+            {
+                DebugConsole.Log("Failed to serialize. Reason: " + e.Message);
+                throw;
+            }
+            finally
+            {
+                fss.Close();
+            }
+        }
+#if Server
+        else if(cmd == "ban")
+        {
+            if (args[3] == null)
+            {
+                args[3] = "No Reason";
+            }
+            args[3] = args[3] + " By " + myLastHeroName;
+            banplayer(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), args[3]);
+        }
+        else if(cmd == "bana")
+        {
+            Banlist.Add(new BanInfo
+            {
+                ipaddrese = args[1],
+                hours = Convert.ToInt32(args[2]) * 10000000 * 3600,
+                reason = args[3] +" By " + myLastHeroName,
+                issued = System.DateTime.Now.Ticks,
+            });
+            saveban();
+        }
+        else if(cmd == "banr")
+        {
+            if (Banlist.Exists(x => x.ipaddrese == args[1]))
+            {
+                Banlist.Remove(Banlist.Find(x => x.ipaddrese == args[1]));
+                saveban();
+            }
+        }
+#endif
+#if DEBUG
         else if (cmd == "lm")
         {
             this.lawn = !this.lawn;
@@ -176,6 +233,37 @@ public class FengMultiplayerScript : MonoBehaviour
             mySpawnHeroObject.GetComponent<HERO>().getSupply();
     #endif
     }
+#if Server
+    public void banplayer(int playernumber , int length,string rea)
+    {
+        int index = 0;
+        while ((index < (this.players.Length - 1)))
+        {
+            if (this.players[index] != null)
+            {
+                if ((Convert.ToInt32(this.players[index].id) == playernumber))
+                    break;
+            }
+            index++;
+        }
+        if (index < (this.players.Length - 1))
+        {
+            Banlist.Add(new BanInfo
+            {
+                ipaddrese = this.players[index].networkplayer.ipAddress,
+                hours = length * 10000000 * 3600,
+                reason = rea,
+                issued = System.DateTime.Now.Ticks,
+            });
+            Network.RemoveRPCs(this.players[index].networkplayer);
+            Network.DestroyPlayerObjects(this.players[index].networkplayer);
+            Network.CloseConnection(this.players[index].networkplayer, true);
+            this.players[index] = null;
+            this.playerWhoTheFuckIsDead("-1");
+            saveban();
+        }
+    }
+#endif
     [RPC]
     public void infod(NetworkPlayer orig,String Vern)
     {
@@ -215,11 +303,11 @@ public class FengMultiplayerScript : MonoBehaviour
         base.networkView.RPC("infod", RPCMode.Server, args);
     }
     [RPC]
-    public void rconcmd(String cmd, NetworkMessageInfo info)
+    public void rconcmd(String cmd,String By, NetworkMessageInfo info)
     {
         #if Server
-        Debug.Log("Got "+ cmd +" From :" +info.sender.ToString() + " IP: " + info.sender.ipAddress);
-        DebugConsole.Log("Got "+ cmd +" From :" +info.sender.ToString());
+        Debug.Log("Got "+ cmd +" From: " + By + " Slot: "+ info.sender.ToString() + " IP: " + info.sender.ipAddress);
+        DebugConsole.Log("Got " + cmd + " From: " + By + " Slot: " + info.sender.ToString() + " IP: " + info.sender.ipAddress);
         for (int i = 0; i < this.numberOfPlayers; i++)
         {
             if ((this.players[i] != null) && (info.sender.ToString() == this.players[i].id))
@@ -230,6 +318,16 @@ public class FengMultiplayerScript : MonoBehaviour
                     {
                         int playernumber = Convert.ToInt32(cmd.Substring(4));
                         kickPlayer(playernumber);
+                    }
+                    else if (cmd.StartsWith("ban"))
+                    {
+                        string[] args = cmd.Split();
+                        if (args[3] == null)
+                        {
+                            args[3] = "No Reason";
+                        }
+                        args[3] = args[3] + " By " + By;
+                        banplayer(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), args[3]);
                     }
                     else if (cmd == "restart")
                     {
@@ -1444,6 +1542,20 @@ public class FengMultiplayerScript : MonoBehaviour
 
     private void OnPlayerConnected(NetworkPlayer networkPlayer)
     {
+        if(Banlist.Exists(x => x.ipaddrese ==networkPlayer.ipAddress))
+        {
+            BanInfo test = Banlist.Find(x => x.ipaddrese ==networkPlayer.ipAddress);
+            if ((test.issued + test.hours < System.DateTime.Now.Ticks && test.hours > 0))
+                Banlist.Remove(test);
+            else
+            {
+                object[] objArray3 = new object[] { "You are Banned" };
+                base.networkView.RPC("TellPlayerHeHasntRegister", networkPlayer, objArray3);
+                Network.RemoveRPCs(networkPlayer);
+                Network.DestroyPlayerObjects(networkPlayer);
+                Network.CloseConnection(networkPlayer, true);
+            }
+        }
         int num;
         PlayerInfo info;
         object[] args = new object[] { networkPlayer.ToString(), UIMainReferences.version };
@@ -2395,6 +2507,71 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         #if Server
         loadargs();
+        if (File.Exists("BanFile.dat"))
+        {
+            FileStream fsz = new FileStream("BanFile.dat", FileMode.Open);
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+
+                // Deserialize the hashtable from the file and  
+                // assign the reference to the local variable.
+                Banlist = (List<BanInfo>)formatter.Deserialize(fsz);
+            }
+            catch (SerializationException e)
+            {
+                DebugConsole.Log("Failed to deserialize. Reason: " + e.Message);
+                throw;
+            }
+            catch (InvalidCastException b)
+            {
+                Debug.Log("Banlist Is Corrupt Please replace BanFile.dat");
+                Application.Quit();
+            }
+            finally
+            {
+                fsz.Close();
+            }
+        }
+        else
+            Application.Quit();
+        if (File.Exists("BanExport.dat"))
+        {
+            FileStream fsz = new FileStream("BanExport.dat", FileMode.Open);
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+
+                // Deserialize the hashtable from the file and  
+                // assign the reference to the local variable.
+                List<BanInfo> temp = (List<BanInfo>)formatter.Deserialize(fsz);
+                foreach (BanInfo a in temp)
+                {
+                    if (!Banlist.Contains(a))
+                        Banlist.Add(a);
+                }
+            }
+            catch (SerializationException e)
+            {
+                DebugConsole.Log("Failed to deserialize. Reason: " + e.Message);
+                throw;
+            }
+            catch (InvalidCastException b)
+            {
+                Debug.Log("Banlist Is Corrupt Please replace BanFile.dat");
+                Application.Quit();
+            }
+            finally
+            {
+                fsz.Close();
+            }
+        }
+        foreach(BanInfo a in Banlist)
+        {
+            if (a.issued + a.hours < System.DateTime.Now.Ticks && a.hours > 0)
+                Banlist.Remove(a);
+        }
+        saveban();
         if (this.isDedicated)
         {
             StartAsServer(" ", this.numberOfPlayers, this.serverPort, this.map, this.difficulty, 99);
@@ -3153,6 +3330,14 @@ public class FengMultiplayerScript : MonoBehaviour
         public float playtime;
 
     }
+    [Serializable] //needs to be marked as serializable
+    struct BanInfo
+    {
+        public String ipaddrese;
+        public int hours;
+        public long issued;
+        public String reason;
+    }
     [RPC]
     public void killself(NetworkMessageInfo info)
     {
@@ -3179,9 +3364,7 @@ public class FengMultiplayerScript : MonoBehaviour
     void OnApplicationQuit()
     {
         FileStream fs = new FileStream("DataFile.dat", FileMode.Create);
-      // FileStream fs = new FileStream("AoTTG_Data\\Managed\\Assembly-CSharp.dll", FileMode.Create);
-        // Construct a BinaryFormatter and use it to serialize the data to the stream.
-       BinaryFormatter formatter = new BinaryFormatter();
+        BinaryFormatter formatter = new BinaryFormatter();
         try
         {
             formatter.Serialize(fs, data);
@@ -3194,6 +3377,25 @@ public class FengMultiplayerScript : MonoBehaviour
         finally
         {
             fs.Close();
+        }
+        saveban();
+    }
+    void saveban()
+    {
+        FileStream fss = new FileStream("BanFile.dat", FileMode.Create);
+        BinaryFormatter formatter = new BinaryFormatter();
+        try
+        {
+            formatter.Serialize(fss, Banlist);
+        }
+        catch (SerializationException e)
+        {
+            DebugConsole.Log("Failed to serialize. Reason: " + e.Message);
+            throw;
+        }
+        finally
+        {
+            fss.Close();
         }
     }
     [RPC]

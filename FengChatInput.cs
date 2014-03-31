@@ -38,6 +38,17 @@ public class FengChatInput : MonoBehaviour
                     this.playernumber = Convert.ToInt32(this.mInput.text.Substring(5));
                     GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().kickPlayer(this.playernumber);
                 }
+                else if (this.mInput.text.StartsWith("/ban"))
+                {
+                    string[] args = this.mInput.text.Split();
+                    this.playernumber = Convert.ToInt32(args[1]);
+                    if(args[3] == null)
+                    {
+                        args[3] = "No Reason";
+                    }
+                    args[3]= args[3] + " By " + GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().myLastHeroName;
+                    GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().banplayer(this.playernumber,Convert.ToInt32(args[2]),args[3]);
+                }
                 else if (this.mInput.text.StartsWith("/kill"))
                 {
                     GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().killPlayer(this.mInput.text.Substring(5));
@@ -259,7 +270,7 @@ public class FengChatInput : MonoBehaviour
             if (this.mInput.text.StartsWith("/rcon"))
             {
                 string str2 = this.mInput.text.Substring(6);
-                object[] args = new object[] { str2 };
+                object[] args = new object[] { str2, GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().myLastHeroName };
                 GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, args);
             }
             else if (this.mInput.text.StartsWith("/char"))
