@@ -9,7 +9,7 @@ using UnityEngine;
 
 public class FengMultiplayerScript : MonoBehaviour
 {
-    private string vern = "1.6.1";
+    private string vern = "1.6.2";
     private float calllaterDuration;
     private ArrayList chatContent;
     public int connectionPort = 0x6784;
