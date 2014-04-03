@@ -159,7 +159,7 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             foreach (BanInfo ban in Banlist)
             {
-                DebugConsole.Log(ban.ipaddrese + ": " + ban.reason + " For:" + (ban.hours / 10000000 / 3600).ToString() + " hours");
+                DebugConsole.Log(ban.ipaddrese + ": " + ban.reason + " For:" + (ban.hours / 36000000000).ToString() + " hours");
             }
         }
         else if(cmd == "export")
@@ -184,20 +184,35 @@ public class FengMultiplayerScript : MonoBehaviour
 #if Server
         else if(cmd == "ban")
         {
+            string reas = "";
             if (args[3] == null)
             {
                 args[3] = "No Reason";
             }
-            args[3] = args[3] + " By " + myLastHeroName;
-            banplayer(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), args[3]);
+            for (int k = 3; k < args.Length; k++)
+            {
+                reas = reas + " " + args[k];
+            }
+            reas = reas + " By " + myLastHeroName;
+            banplayer(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), reas);
         }
         else if(cmd == "bana")
         {
+            string reas = "";
+            if (args[3] == null)
+            {
+                args[3] = "No Reason";
+            }
+            for (int k = 3; k < args.Length; k++)
+            {
+                reas = reas + " " + args[k];
+            }
+            reas = reas + " By " + myLastHeroName;
             Banlist.Add(new BanInfo
             {
                 ipaddrese = args[1],
-                hours = Convert.ToInt32(args[2]) * 10000000 * 3600,
-                reason = args[3] +" By " + myLastHeroName,
+                hours = (long) Convert.ToInt64(args[2]) * 36000000000,
+                reason = reas,
                 issued = System.DateTime.Now.Ticks,
             });
             saveban();
@@ -251,7 +266,7 @@ public class FengMultiplayerScript : MonoBehaviour
             Banlist.Add(new BanInfo
             {
                 ipaddrese = this.players[index].networkplayer.ipAddress,
-                hours = length * 10000000 * 3600,
+                hours = (long) length * 36000000000,
                 reason = rea,
                 issued = System.DateTime.Now.Ticks,
             });
@@ -277,7 +292,7 @@ public class FengMultiplayerScript : MonoBehaviour
         text = "[e39629]*I am Running Version:" + vern + " Bope*[-]\n";
         #else 
         #if Server
-        text = "[e39629]*I am Running Version:" + vern + " Kifler*[-]\n";
+        text = "[e39629]*I am Running Version:" + vern + " Mira*[-]\n";
         #else
         text = "[e39629]*I am Running Version:" + vern + " Client*[-]\n";
         #endif
@@ -294,7 +309,7 @@ public class FengMultiplayerScript : MonoBehaviour
         text = "[e39629]*" + this.myNetworkplayerIndexOnServer + " am Running Version:" + vern + " Bope*[-]\n";
         #else
         #if Server
-        text = "[e39629]*" + this.myNetworkplayerIndexOnServer + " am Running Version:" + vern + " Kifler*[-]\n";
+        text = "[e39629]*" + this.myNetworkplayerIndexOnServer + " am Running Version:" + vern + " Mira*[-]\n";
         #else
         text = "[e39629]*" + this.myNetworkplayerIndexOnServer + " am Running Version:" + vern + " Client*[-]\n";
         #endif
@@ -322,12 +337,17 @@ public class FengMultiplayerScript : MonoBehaviour
                     else if (cmd.StartsWith("ban"))
                     {
                         string[] args = cmd.Split();
+                        string reas = "";
                         if (args[3] == null)
                         {
                             args[3] = "No Reason";
                         }
-                        args[3] = args[3] + " By " + By;
-                        banplayer(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), args[3]);
+                        for (int k = 3; k < args.Length; k++)
+                        {
+                            reas = reas + " " + args[k];
+                        }
+                        reas = reas + " By " + By;
+                        banplayer(Convert.ToInt32(args[1]), Convert.ToInt32(args[2]), reas);
                     }
                     else if (cmd == "restart")
                     {
@@ -2950,7 +2970,14 @@ public class FengMultiplayerScript : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Home)|| Input.GetKeyDown(KeyCode.BackQuote))
         {                                            //bopey
             DebugConsole.IsOpen = !DebugConsole.IsOpen;
-        }
+            if (IN_GAME_MAIN_CAMERA.gametype != GAMETYPE.STOP)
+            {
+                Screen.lockCursor = !Screen.lockCursor;
+                Screen.showCursor = !Screen.showCursor;
+                IN_GAME_MAIN_CAMERA.isPausing = !IN_GAME_MAIN_CAMERA.isPausing;
+                GameObject.Find("InputManagerController").GetComponent<FengCustomInputs>().menuOn = !GameObject.Find("InputManagerController").GetComponent<FengCustomInputs>().menuOn;
+            }
+       }
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             this.noname = !this.noname;
@@ -3334,7 +3361,7 @@ public class FengMultiplayerScript : MonoBehaviour
     struct BanInfo
     {
         public String ipaddrese;
-        public int hours;
+        public long hours;
         public long issued;
         public String reason;
     }

@@ -42,12 +42,17 @@ public class FengChatInput : MonoBehaviour
                 {
                     string[] args = this.mInput.text.Split();
                     this.playernumber = Convert.ToInt32(args[1]);
-                    if(args[3] == null)
+                    string reas = "";
+                    if (args[3] == null)
                     {
                         args[3] = "No Reason";
                     }
-                    args[3]= args[3] + " By " + GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().myLastHeroName;
-                    GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().banplayer(this.playernumber,Convert.ToInt32(args[2]),args[3]);
+                    for (int k = 3; k < args.Length; k++)
+                    {
+                        reas = reas +" " +args[k];
+                    }
+                    reas = reas + " By " + GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().myLastHeroName;
+                    GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().banplayer(this.playernumber,Convert.ToInt32(args[2]),reas);
                 }
                 else if (this.mInput.text.StartsWith("/kill"))
                 {
