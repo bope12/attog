@@ -96,6 +96,11 @@ public class FengMultiplayerScript : MonoBehaviour
     public bool isTotonbusterEnforced = false;
     public bool isNightmodeEnforced = false;
     public bool nohook = false;
+    public String currentVote;
+    public int voteYes;
+    public int startVoteTime;
+    public static int VoteTime = 30;
+    public static Boolean Vote = true;
     Vector3[] pos;
     List<BanInfo> Banlist = new List<BanInfo>();
      #if DEBUG
@@ -327,6 +332,79 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             if ((this.players[i] != null) && (info.sender.ToString() == this.players[i].id))
             {
+                if(!this.players[i].mod)
+                {
+                    if((this.players[i]==null) || !(info.sender.ToString() == this.players[i].id))
+                    {
+                        continue;
+
+                    }
+
+                   if (cmd.StartsWith("voteyes") && Vote && !this.players[i].mod)
+                   {
+                       if(currentVote == null)
+                       {
+                           base.networkView.RPC("showChatContent", info.sender, new object[] { "[e39629]*There is no current vote running.*[-]\n" });
+                       }
+                       else
+                       {
+                           voteYes++;
+                           int playersExist = 0;
+                           if (isDedicated)
+                           {
+                               playersExist = -1;
+                           }
+                           foreach(PlayerInfo ply in this.players)
+                           {
+                               if(ply != null)
+                               {
+                                   playersExist++;
+                               }
+                           }
+                           base.networkView.RPC("showChatContent", RPCMode.All, new object[] { "[e39629]*" + voteYes.ToString() + "\\" + playersExist.ToString() + " voted for: " + currentVote + ".*[-]\n" });
+                           if (voteYes >= (((float)playersExist) / 2.0))
+                           {
+                               this.rconcmd(currentVote, By, new NetworkMessageInfo());
+                               voteYes = 0;
+                               currentVote = null;
+                           }
+                       }
+                   }
+                   else if (cmd.StartsWith("vote") && Vote && !this.players[i].mod)
+                   {
+                       if (currentVote != null)
+                       {
+                           base.networkView.RPC("showChatContent", info.sender, new object[] { "[e39629]*There is already a vote running, wait until it is done.*[-]\n" });
+                       }
+                       else
+                       {
+                           currentVote = cmd.Substring(5).Trim().ToLower();
+                           voteYes = 1;
+                           startVoteTime = (int)Time.time + VoteTime;
+                           base.networkView.RPC("showChatContent", RPCMode.All, new object[] { "[e39629]*Vote: " + currentVote + "started, please enter / voteyes when you want this to happen.*[-]\n" });
+                           int playersExist = 0;
+                           if(isDedicated)
+                           {
+                               playersExist = -1;
+                           }
+                           foreach(PlayerInfo ply in this.players)
+                           {
+                               if(ply != null)
+                               {
+                                   playersExist++;
+                               }
+                           }
+                           base.networkView.RPC("showChatContent", RPCMode.All, new object[] { "[e39629]*" + voteYes.ToString() + "\\" + playersExist.ToString() + " voted for: " + currentVote + ".*[-]\n" });
+                           if (voteYes >= (((float)playersExist) / 2.0))
+                           {
+                               this.rconcmd(currentVote, By, new NetworkMessageInfo());
+                               voteYes = 0;
+                               currentVote = null;
+                           }
+                       }
+                   }
+
+                }
                 if (this.players[i].rcon && this.players[i].mod)
                 {
                     if (cmd.StartsWith("kick"))
@@ -612,6 +690,10 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             strArray = str.Split(new char[] { '=' });
             dictionary.Add(strArray[0], strArray[1]);
+        }
+        if(dictionary.ContainsKey("VOTETime"))
+        {
+            VoteTime = Convert.ToInt32(dictionary["VOTETime"]);
         }
         if (dictionary.ContainsKey("TitanHP"))
         {
@@ -1429,7 +1511,7 @@ public class FengMultiplayerScript : MonoBehaviour
                 {
                 #endif
                     this.SpawnPlayer(this.myLastHero, "playerRespawn");
-                    this.players[0].dead = false;
+                    
                 #if Server
                 }
                 else
@@ -1733,6 +1815,29 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         Network.RemoveRPCs(networkPlayer);
         Network.DestroyPlayerObjects(networkPlayer);
+        if (currentVote != null)
+        {
+            voteYes++;
+            int playersExist = 0;
+            if (isDedicated)
+            {
+                playersExist = -1;
+            }
+            foreach (PlayerInfo ply in this.players)
+            {
+                if (ply != null)
+                {
+                    playersExist++;
+                }
+                base.networkView.RPC("showChatContent", RPCMode.All, new object[] { "[e39629]*" + voteYes.ToString() + "\\" + playersExist.ToString() + " voted for: " + currentVote + ".*[-]\n" });
+                if (voteYes >= (((float)playersExist) / 2.0))
+                {
+                    this.rconcmd(currentVote,  By, new NetworkMessageInfo());
+                    voteYes = 0;
+                    currentVote = null;
+                }
+            }
+        }
     }
 
     public void OnServerInitialized()
@@ -2940,6 +3045,15 @@ public class FengMultiplayerScript : MonoBehaviour
 
     private void Update()
     {
+        if (currentVote != null)
+        {
+            if (startVoteTime <= Time.time)
+            {
+                base.networkView.RPC("showChatContent", RPCMode.All, new object[] { "[e39629]*Vote died.*[-]\n" });
+                currentVote = null;
+            }
+        }
+
         if (IN_GAME_MAIN_CAMERA.gametype == GAMETYPE.CLIENT)
         {
             this.timeElapse += Time.deltaTime;
@@ -3480,5 +3594,7 @@ public class FengMultiplayerScript : MonoBehaviour
 
 
 
+
+    public string By { get; set; }
 }
 

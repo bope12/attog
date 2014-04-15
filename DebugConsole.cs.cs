@@ -154,6 +154,7 @@ public class DebugConsole : MonoBehaviour
     /// \endcode
     /// </summary>
     /// <param name="args">The text typed in the console after the name of the command.</param>
+    public int difficulty = -2;
     public delegate object DebugCommand(params string[] args);
 
     /// <summary>
@@ -245,28 +246,46 @@ public class DebugConsole : MonoBehaviour
     bool dirty;
     #region GUI position values
     // Make these values public if you want to adjust layout of console window
-    readonly Rect scrollRect = new Rect(10, 20, 280, 362);
-    readonly Rect inputRect = new Rect(10, 388, 228, 24);
+    public Rect scrollRect = new Rect(10, 20, 280, 362);
+    public Rect inputRect = new Rect(10, 388, 228, 24);
 
-    readonly Rect username = new Rect(17, 55, 210, 24);
-    readonly Rect userRect = new Rect(239, 61, 10, 10);
+    public Rect username = new Rect(17, 55, 210, 24);
+    public Rect userRect = new Rect(239, 61, 10, 10);
 
-    readonly Rect servername = new Rect(17, 100, 210, 24);
-    readonly Rect serverRect = new Rect(239, 106, 10, 10);
+    public Rect servername = new Rect(17, 100, 210, 24);
+    public Rect serverRect = new Rect(239, 106, 10, 10);
 
-    readonly Rect motd = new Rect(17, 145, 210, 24);
-    readonly Rect motdRect = new Rect(239, 151, 10, 10);
+    public Rect motd = new Rect(17, 145, 210, 24);
+    public Rect motdRect = new Rect(239, 151, 10, 10);
 
-    readonly Rect restartRect = new Rect(40, 210, 200, 45);
+    public Rect restartRect = new Rect(40, 210, 200, 45);
 
-    readonly Rect lavaRect = new Rect(40, 260, 90, 45);
-    readonly Rect crawlerRect = new Rect(150, 260, 90, 45);
+    public Rect lavaRect = new Rect(40, 260, 90, 45);
+    public Rect crawlerRect = new Rect(150, 260, 90, 45);
 
-    readonly Rect enterRect = new Rect(240, 388, 50, 24);
-    readonly Rect toolbarRect = new Rect(16, 416, 266, 25);
+    public Rect trainingRect = new Rect(40, 190, 90, 45);
+    public Rect normalRect = new Rect(40, 250, 90, 45);
+    public Rect hardRect = new Rect(150, 190, 90, 45);
+    public Rect abnormalRect = new Rect(150, 250, 90, 45);
+
+    public Rect city1Rect = new Rect(40, 20, 90, 45);
+    public Rect city2Rect = new Rect(150, 20, 90, 45);
+    public Rect cageRect = new Rect(40, 80, 90, 45);
+    public Rect forest1Rect = new Rect(150, 80, 90, 45);
+    public Rect forest2Rect = new Rect(40, 140, 90, 45);
+    public Rect forest3Rect = new Rect(150, 140, 90, 45);
+    public Rect annie1Rect = new Rect(40, 200, 90, 45);
+    public Rect annie2Rect = new Rect(150, 200, 90, 45);
+    public Rect ct1Rect = new Rect(40, 260, 90, 45);
+    public Rect ct2Rect = new Rect(150, 260, 90, 45);
+    public Rect trost1Rect = new Rect(40, 320, 90, 45);
+    public Rect trost2Rect = new Rect(150, 320, 90, 45);
+
+    public Rect enterRect = new Rect(240, 388, 50, 24);
+    public Rect toolbarRect = new Rect(16, 416, 266, 25);
     Rect messageLine = new Rect(4, 0, 264, 20);
     int lineOffset = -4;
-    string[] tabs = new string[] { "Main", "Chat", "Players","Log" };
+    string[] tabs = new string[] { "Main", "Maps","Diff", "Chat", "Players","Log" };
 
     // Keep these private, their values are generated automatically
     Rect nameRect;
@@ -500,7 +519,7 @@ public class DebugConsole : MonoBehaviour
             _guiScale.Set(scale, scale, scale);
         }
 
-        windowMethods = new GUI.WindowFunction[] { MainWindow, ChatWindow,PlayerWindow, CopyLogWindow};
+        windowMethods = new GUI.WindowFunction[] { MainWindow, ServerWindow, DifficultyWindow, ChatWindow,PlayerWindow, CopyLogWindow};
 
         fps = new FPSCounter();
         StartCoroutine(fps.Update());
@@ -1264,6 +1283,193 @@ public class DebugConsole : MonoBehaviour
         _rawLogScrollPos = GUI.BeginScrollView(scrollRect, _rawLogScrollPos, innerRect, false, true);
 
        // GUI.TextArea(innerRect, guiContent.text);
+        GUI.EndScrollView();
+        GUI.backgroundColor = orig;
+        DrawBottomControls();
+    }
+    void ServerWindow(int windowID)
+    {
+        Color orig = GUI.backgroundColor;
+        GUI.backgroundColor = orig;
+        if (Network.isServer)
+        {
+            
+        }
+        if (GUI.Button(city1Rect, "City I"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "The City I";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map City 1");
+
+              
+        }
+        if (GUI.Button(city2Rect, "City II"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "The City II";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map city 2");
+
+            
+        }
+        if (GUI.Button(cageRect, "Cage Fighting"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "Cage Fighting";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map Cage fight ");
+
+            
+        }
+        if (GUI.Button(forest1Rect, "Forest I"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "The Forest";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map forest 1");
+
+        }
+        if (GUI.Button(forest2Rect, "Forest II"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "The Forest II";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map forest 2");
+
+          
+        }
+        if (GUI.Button(forest3Rect, "Forest III"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "The Forest III";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map forest 3");
+
+        }
+        if (GUI.Button(annie1Rect, "Annie I"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "Annie I";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map annie 1");
+
+           
+        }
+        if (GUI.Button(annie2Rect, "Annie II"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "Annie II";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map annie 2");
+
+
+        }
+        if (GUI.Button(ct1Rect, "CT I"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "Colossal Titan";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map colossal titan");
+
+         
+        }
+        if (GUI.Button(ct2Rect, "CT II"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "Colossal Titan II";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map colossal titan 2");
+
+            
+        }
+        if (GUI.Button(trost1Rect, "Trost I"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "Trost";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map trost");
+
+         
+        }
+        if (GUI.Button(trost2Rect, "Trost II"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().map = "Trost II";
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "map trost 2");
+
+     
+        }
+        GUI.backgroundColor = orig;
+        if (Network.isServer)
+        {
+
+
+        }
+        var calcHeight = GUI.skin.textArea.CalcHeight(guiContent, messageLine.width);
+
+        innerRect.height = calcHeight < scrollRect.height ? scrollRect.height : calcHeight;
+        _rawLogScrollPos = GUI.BeginScrollView(scrollRect, _rawLogScrollPos, innerRect, false, true);
+
+        // GUI.TextArea(innerRect, guiContent.text);
+        GUI.EndScrollView();
+        GUI.backgroundColor = orig;
+        DrawBottomControls();
+    }
+    void DifficultyWindow(int windowID)
+    {
+
+        Color orig = GUI.backgroundColor;
+        GUI.backgroundColor = orig;
+        if (GUI.Button(trainingRect, "Training"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = -1;
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "difficulty training");
+            this.difficulty = -1;
+            IN_GAME_MAIN_CAMERA.difficulty = difficulty;
+        }
+        if (GUI.Button(normalRect, "Normal"))
+        {
+
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = 0;
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "difficulty normal");
+            this.difficulty = 0;
+            IN_GAME_MAIN_CAMERA.difficulty = difficulty;
+        }
+        if (GUI.Button(hardRect, "Hard"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = 1;
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "difficulty ");
+            this.difficulty = 1;
+            IN_GAME_MAIN_CAMERA.difficulty = difficulty;
+        }
+        if (GUI.Button(abnormalRect, "Abnormal"))
+        {
+            if (Network.isServer)
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().difficulty = 2;
+            else
+                GameObject.Find("MultiplayerManager").networkView.RPC("rconcmd", RPCMode.Server, "difficulty ");
+            this.difficulty = 2;
+            IN_GAME_MAIN_CAMERA.difficulty = difficulty;
+        }
+        if (Network.isServer)
+        {
+
+
+        }
+        var calcHeight = GUI.skin.textArea.CalcHeight(guiContent, messageLine.width);
+
+        innerRect.height = calcHeight < scrollRect.height ? scrollRect.height : calcHeight;
+        _rawLogScrollPos = GUI.BeginScrollView(scrollRect, _rawLogScrollPos, innerRect, false, true);
+
+        // GUI.TextArea(innerRect, guiContent.text);
         GUI.EndScrollView();
         GUI.backgroundColor = orig;
         DrawBottomControls();

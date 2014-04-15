@@ -18,6 +18,7 @@ public class PlayerInfo
     public int totalDamage;
     public bool mod = false;
     public bool rcon = false;
+    public String voted;
     public GameObject play;
 }
 
