@@ -19,6 +19,7 @@ public class TITAN : MonoBehaviour
     public AbnormalType abnormalType;
     public int activeRad = 0x7fffffff;
     private float angle;
+    public bool assistance;
     private string attackAnimation;
     private float attackCheckTime;
     private float attackCheckTimeA;
@@ -368,6 +369,7 @@ public class TITAN : MonoBehaviour
             if ((Network.peerType == NetworkPeerType.Server) && (this.grabbedTarget != null))
             {
                 this.grabbedTarget.networkView.RPC("netUngrabbed", RPCMode.All, new object[0]);
+                
             }
         }
     }
@@ -1589,6 +1591,7 @@ public class TITAN : MonoBehaviour
                     if (this.grabbedTarget != null)
                     {
                         this.grabbedTarget.networkView.RPC("netUngrabbed", RPCMode.All, new object[0]);
+                        this.assistance = true;                          
                     }
                     this.netDie();
                     if (player.isMine)
@@ -1599,6 +1602,7 @@ public class TITAN : MonoBehaviour
                     {
                         GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().titanGetKill(player, speed, base.name);
                     }
+                    this.assistance = false;
                 }
             }
         }

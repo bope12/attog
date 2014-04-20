@@ -4,6 +4,8 @@ using UnityEngine;
 public class PlayerInfo
 {
     public int assistancePt;
+    public bool orange = false;
+    public bool blue = false;
     public bool dead = true;
     public int die;
     public string id;

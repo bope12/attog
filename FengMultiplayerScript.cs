@@ -9,6 +9,10 @@ using UnityEngine;
 
 public class FengMultiplayerScript : MonoBehaviour
 {
+    public bool autoteam = false;
+    public bool team = false;
+    public int orangeTeamkills;
+    public int blueTeamkills;
     private string vern = "1.6.2";
     private float calllaterDuration;
     private ArrayList chatContent;
@@ -115,7 +119,11 @@ public class FengMultiplayerScript : MonoBehaviour
         playtime = 0f,
         };
     public void change(string name)
-    {
+     {
+         if (name == "Night")
+             isNightmodeEnforced = !isNightmodeEnforced;
+         if (name == "Annieasymodo")
+             isAnnieasymodo = !isAnnieasymodo;
         if(name == "Annie")
              isAnniecalypse = !isAnniecalypse;
         if (name == "Big")
@@ -407,6 +415,23 @@ public class FengMultiplayerScript : MonoBehaviour
                 }
                 if (this.players[i].rcon && this.players[i].mod)
                 {
+                    
+                    if(cmd.StartsWith("team"))
+                    {
+                        this.change("team");
+                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Toggled Team Mode*[-]\n");
+                    }
+                    if(cmd.StartsWith("autoteam"))
+                    {
+                        this.change("autoteam");
+                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Toggled AutoTeam Mode*[-]\n");
+                    }
+
+                    if(cmd.StartsWith("blue"))
+                    {
+                        int playernumber = Convert.ToInt32(cmd.Substring(4));
+                       
+                    }
                     if (cmd.StartsWith("kick"))
                     {
                         int playernumber = Convert.ToInt32(cmd.Substring(4));
@@ -451,11 +476,22 @@ public class FengMultiplayerScript : MonoBehaviour
                         this.change("Big");
                         base.networkView.RPC("showChatContent", info.sender, "[e39629]*Toggled Bigtoon Mode*[-]\n");
                     }
+                    else if(cmd==("night"))
+                    {
+                        this.change("Night");
+                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Toggled Night Mode[-]\n");
+                    }
                     else if (cmd == ("annie"))
                     {
                         this.change("Annie");
                         base.networkView.RPC("showChatContent", info.sender, "[e39629]*Toggled Annie Mode*[-]\n");
                     }
+                    else if(cmd == ("easy"))
+                    {
+                        this.change("Annieasymodo");
+                        base.networkView.RPC("showChatContent",info.sender, "[e39629]*Toggled Annie Easy Mode*[-]\n");
+                    }
+
                     else if (cmd.StartsWith("map"))
                     {
                         string str2 = cmd.Substring(4).Trim().ToLower();
@@ -691,6 +727,14 @@ public class FengMultiplayerScript : MonoBehaviour
             strArray = str.Split(new char[] { '=' });
             dictionary.Add(strArray[0], strArray[1]);
         }
+        if(dictionary.ContainsKey("AutoTeam"))
+        {
+            autoteam = dictionary["AutoTeam"].ToLower().Equals("true");
+        }
+        if(dictionary.ContainsKey("Team"))
+        {
+            team = dictionary["Team"].ToLower().Equals("true");
+        }
         if(dictionary.ContainsKey("VOTETime"))
         {
             VoteTime = Convert.ToInt32(dictionary["VOTETime"]);
@@ -701,8 +745,10 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         if (dictionary.ContainsKey("Night"))
             this.isNightmodeEnforced = dictionary["Night"].ToLower().Equals("true");
+
         if (dictionary.ContainsKey("TotonBuster"))
             this.isTotonbusterEnforced = dictionary["TotonBuster"].ToLower().Equals("true");
+
         if (dictionary.ContainsKey("MOTD"))
         {
             this.motd= dictionary["MOTD"];
@@ -1925,6 +1971,10 @@ public class FengMultiplayerScript : MonoBehaviour
         player.kills++;
         player.maxDamage = Mathf.Max(dmg, player.maxDamage);
         player.totalDamage += dmg;
+        if(GameObject.Find("MultiplayerManager").GetComponent<TITAN>().assistance == true)
+        {
+            player.assistancePt++;
+        }
     }
 
     public void playerWhoTheFuckIsDead(string id)
@@ -2095,6 +2145,7 @@ public class FengMultiplayerScript : MonoBehaviour
         }
 
     }
+    
     #endif
     public void setDifficulty(int difficulty)
     {
@@ -2315,12 +2366,28 @@ public class FengMultiplayerScript : MonoBehaviour
                 {
                     str = str + "[ff0000]";
                 }
+                if(this.players[i].orange)
+                {
+                    str = str + "[ff8000]";
+                }
+                if(this.players[i].blue)
+                {
+                    str = str + "[0000FF]";
+                }
                 string str2 = str;
-                object[] objArray1 = new object[] { str2, "[", this.players[i].id, "]", this.players[i].name, ":", this.players[i].kills, "/", this.players[i].die, "/", this.players[i].maxDamage, "/", this.players[i].totalDamage }; //, "/", this.players[i].assistancePt
+                object[] objArray1 = new object[] { str2, "[", this.players[i].id, "]", this.players[i].name, ":", this.players[i].kills, "/", this.players[i].die, "/", this.players[i].maxDamage, "/", this.players[i].totalDamage,  "/", this.players[i].assistancePt};
                 str2 = string.Concat(objArray1);
                 object[] objArray2 = new object[] { str2, " Ping:", Network.GetAveragePing(this.players[i].networkplayer), "ms" };
                 str = string.Concat(objArray2);
                 if (this.players[i].dead)
+                {
+                    str = str + "[-]";
+                }
+                if (this.players[i].orange)
+                {
+                    str = str + "[-]";
+                } 
+                if (this.players[i].blue)
                 {
                     str = str + "[-]";
                 }
@@ -2357,6 +2424,10 @@ public class FengMultiplayerScript : MonoBehaviour
 
     private void ShowHUDInfoTopRight(string content)
     {
+        if(this.team)
+        {
+            content = content + "\nOrange Team Kills: " + orangeTeamkills + "\n Blue Team Kills " + blueTeamkills;
+        }
         if (this.showhp)
         {
             foreach (GameObject obj2 in GameObject.FindGameObjectsWithTag("titan"))
