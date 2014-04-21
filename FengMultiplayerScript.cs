@@ -107,6 +107,10 @@ public class FengMultiplayerScript : MonoBehaviour
     public static Boolean Vote = true;
     Vector3[] pos;
     List<BanInfo> Banlist = new List<BanInfo>();
+    Vector3[] pos;
+    List<Orange> Orangelist = new List<Orange>();
+    Vector3[] pos;
+    List<Blue> Bluelist = new List<Blue>();
      #if DEBUG
         public bool lawn = false;
         public bool dick = false;
@@ -118,6 +122,7 @@ public class FengMultiplayerScript : MonoBehaviour
         deaths = 0,
         playtime = 0f,
         };
+    
     public void change(string name)
      {
          if (name == "Night")
@@ -262,6 +267,29 @@ public class FengMultiplayerScript : MonoBehaviour
     #endif
     }
 #if Server
+    public void blueplayer(int playernumber)
+    {
+        int index = 0;
+        while ((index < (this.players.Length - 1)))
+        {
+            if (this.players[index] != null)
+            {
+                if ((Convert.ToInt32(this.players[index].id) == playernumber))
+                    break;
+            }
+            index++;
+        }
+          if (index < (this.players.Length - 1))
+        {
+            Bluelist.Add(new Blue
+            {
+                blue = this.players[index].networkplayer.ipAddress,
+                kills = this.players[index].kills,
+                deaths = this.players[index].die,
+            });
+
+            }
+    }
     public void banplayer(int playernumber , int length,string rea)
     {
         int index = 0;
@@ -430,7 +458,7 @@ public class FengMultiplayerScript : MonoBehaviour
                     if(cmd.StartsWith("blue"))
                     {
                         int playernumber = Convert.ToInt32(cmd.Substring(4));
-                       
+                        blueplayer(playernumber);
                     }
                     if (cmd.StartsWith("kick"))
                     {
@@ -625,6 +653,8 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         #endif
     }
+
+    
     #if Server
     public void cleanupidle() 
     {
@@ -3534,6 +3564,7 @@ public class FengMultiplayerScript : MonoBehaviour
             }
     }
     #endif
+    
     [Serializable] //needs to be marked as serializable
     struct SaveData
     {
@@ -3549,6 +3580,20 @@ public class FengMultiplayerScript : MonoBehaviour
         public long hours;
         public long issued;
         public String reason;
+    }
+    [Serializable] //needs to be marked as serializable
+    struct Orange
+    {
+        public String orange;
+        public int kills;
+        public int deaths;
+    }
+    [Serializable] //needs to be marked as serializable
+    struct Blue
+    {
+        public String blue;
+        public int kills;
+        public int deaths;
     }
     [RPC]
     public void killself(NetworkMessageInfo info)
