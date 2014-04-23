@@ -10,6 +10,7 @@ using UnityEngine;
 public class FengMultiplayerScript : MonoBehaviour
 {
     public bool autoteam = false;
+    public int topkiller;
     public bool team = false;
     public int orangeTeamkills;
     public int blueTeamkills;
@@ -105,11 +106,13 @@ public class FengMultiplayerScript : MonoBehaviour
     public int startVoteTime;
     public static int VoteTime = 30;
     public static Boolean Vote = true;
+    public int numoforange;
+    public int numofblue;
     Vector3[] pos;
     List<BanInfo> Banlist = new List<BanInfo>();
-    Vector3[] pos;
+    
     List<Orange> Orangelist = new List<Orange>();
-    Vector3[] pos;
+    
     List<Blue> Bluelist = new List<Blue>();
      #if DEBUG
         public bool lawn = false;
@@ -122,7 +125,23 @@ public class FengMultiplayerScript : MonoBehaviour
         deaths = 0,
         playtime = 0f,
         };
+    public void orangecalculated()
+     {
+        
+     Orange test = Orangelist.Find(x => x.kills ==  orangeTeamkills);
     
+
+     }
+    public void bluecalculated()
+    {
+
+        Blue test = Bluelist.Find(x => x.kills == blueTeamkills);
+        
+
+
+    }
+
+
     public void change(string name)
      {
          if (name == "Night")
@@ -281,14 +300,41 @@ public class FengMultiplayerScript : MonoBehaviour
         }
           if (index < (this.players.Length - 1))
         {
+            numofblue++;
             Bluelist.Add(new Blue
             {
                 blue = this.players[index].networkplayer.ipAddress,
+                numberofblue=numofblue,
                 kills = this.players[index].kills,
                 deaths = this.players[index].die,
             });
 
             }
+    }
+    public void orangeplayer(int playernumber)
+    {
+        int index = 0;
+        while ((index < (this.players.Length - 1)))
+        {
+            if (this.players[index] != null)
+            {
+                if ((Convert.ToInt32(this.players[index].id) == playernumber))
+                    break;
+            }
+            index++;
+        }
+        if (index < (this.players.Length - 1))
+        {
+            numoforange++;
+            Orangelist.Add(new Orange
+            {
+               orange = this.players[index].networkplayer.ipAddress,
+               numberoforange = numoforange,
+                kills = this.players[index].kills,
+                deaths = this.players[index].die,
+            });
+
+        }
     }
     public void banplayer(int playernumber , int length,string rea)
     {
@@ -459,6 +505,13 @@ public class FengMultiplayerScript : MonoBehaviour
                     {
                         int playernumber = Convert.ToInt32(cmd.Substring(4));
                         blueplayer(playernumber);
+                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to blue team*[-]\n");
+                    }
+                    if (cmd.StartsWith("orange"))
+                    {
+                        int playernumber = Convert.ToInt32(cmd.Substring(6));
+                        orangeplayer(playernumber);
+                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to orange team*[-]\n");
                     }
                     if (cmd.StartsWith("kick"))
                     {
@@ -1748,11 +1801,13 @@ public class FengMultiplayerScript : MonoBehaviour
             {
                 if (this.playersRegistered[i] == null)
                 {
+                    
                     PlayerInfo info3 = new PlayerInfo();
                     info3.networkplayer = networkPlayer;
                     info3.id = networkPlayer.ToString();
                     info3.playerIP = networkPlayer.ipAddress;
                     info = info3;
+                   
                     this.playersRegistered[i] = info;
                     DebugConsole.Log("new comer ID : " + networkPlayer.ToString() + " my ID : " + base.networkView.owner.ToString() + "my IP: " + info.playerIP);
                     return;
@@ -1777,6 +1832,18 @@ public class FengMultiplayerScript : MonoBehaviour
                         this.playersRegistered[num] = info;
                         DebugConsole.Log("new comer ID : " + networkPlayer.ToString() + " my ID : " + base.networkView.owner.ToString() + "my IP: " + info.playerIP);
                         base.networkView.RPC("TellPlayerHisNetworkplayerIndex", networkPlayer, new object[] { num });
+                        if (team)
+                            Orangelist.Exists(x => x.orange == networkPlayer.ipAddress);
+                        Bluelist.Exists(x => x.blue == networkPlayer.ipAddress);
+                        if (numofblue < numoforange)
+                        {
+                            blueplayer(Convert.ToInt32(args[1]));
+                        }
+                        else
+                        {
+                            orangeplayer(Convert.ToInt32(args[1]));
+                        }
+                            
                         StartCoroutine(YourFunction(num));
                         break;
                     }
@@ -2196,6 +2263,11 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             if (this.players[i] != null)
             {
+                if(autoteam)
+                {
+                    this.players[0] > this.players[1]
+                    if(this.players[i].kills > this.players[i].kills)
+                }
                 if (players[i].SET)
                 {
                     this.players[i].dead = false;
@@ -2396,16 +2468,33 @@ public class FengMultiplayerScript : MonoBehaviour
                 {
                     str = str + "[ff0000]";
                 }
-                if(this.players[i].orange)
+                if (Orangelist.Exists(x => x.orange == this.players[i].networkplayer.ipAddress))
+                {
+                    Orange test = Orangelist.Find(x => x.orange == this.players[i].networkplayer.ipAddress);
+                    {
+                        str = str + "[58FAF4]";
+                    }
+                }
+                if (Bluelist.Exists(x => x.blue == this.players[i].networkplayer.ipAddress))
+                {
+                    Blue test2 = Bluelist.Find(x => x.blue == this.players[i].networkplayer.ipAddress);
+                    {
+
+                        str = str + "[FA58F4 ]";
+
+                    }
+                }
+                /*if(this.players[i].orange)
                 {
                     str = str + "[ff8000]";
                 }
                 if(this.players[i].blue)
                 {
                     str = str + "[0000FF]";
-                }
+                }*/
+
                 string str2 = str;
-                object[] objArray1 = new object[] { str2, "[", this.players[i].id, "]", this.players[i].name, ":", this.players[i].kills, "/", this.players[i].die, "/", this.players[i].maxDamage, "/", this.players[i].totalDamage,  "/", this.players[i].assistancePt};
+                object[] objArray1 = new object[] { str2, "[", this.players[i].id, "]", this.players[i].name, ":", this.players[i].kills, "/", this.players[i].die, "/", this.players[i].maxDamage, "/", this.players[i].totalDamage, "/", this.players[i].assistancePt };
                 str2 = string.Concat(objArray1);
                 object[] objArray2 = new object[] { str2, " Ping:", Network.GetAveragePing(this.players[i].networkplayer), "ms" };
                 str = string.Concat(objArray2);
@@ -2413,14 +2502,30 @@ public class FengMultiplayerScript : MonoBehaviour
                 {
                     str = str + "[-]";
                 }
-                if (this.players[i].orange)
+                if (Orangelist.Exists(x => x.orange == this.players[i].networkplayer.ipAddress))
                 {
-                    str = str + "[-]";
-                } 
-                if (this.players[i].blue)
-                {
-                    str = str + "[-]";
+                    Orange test3 = Orangelist.Find(x => x.orange == this.players[i].networkplayer.ipAddress);
+                    {
+                        str = str + "[-]";
+                    }
                 }
+                if (Bluelist.Exists(x => x.blue == this.players[i].networkplayer.ipAddress))
+                {
+                    Blue test4 = Bluelist.Find(x => x.blue == this.players[i].networkplayer.ipAddress);
+                    {
+
+                        str = str + "[-]";
+
+                    }
+                }
+                /*if (this.players[i].orange)
+            {
+                str = str + "[-]";
+            } 
+            if (this.players[i].blue)
+            {
+                str = str + "[-]";
+            }*/
                 GameObject[] player = GameObject.FindGameObjectsWithTag("Player");
                 foreach (GameObject obj3 in player)
                 {
@@ -2432,14 +2537,14 @@ public class FengMultiplayerScript : MonoBehaviour
                                 str = str + "*Grabbed*";
                         }
                     }
-               }
+                }
                 str = str + "\n";
             }
         }
-        #if DEBUG
+#if DEBUG
         if (this.dick)
-            str =  "\n\n                                                   P L E A S E   B U Y  A\n\n\n                                                   $$$$$$$$\\\n                                                   $$  _____|\n                                                   $$ |   $$$$$$\\ $$$$$$$\\  $$$$$$\\\n                                                   $$$$$\\$$  __$$\\$$  __$$\\$$  __$$\\\n                                                   $$  __$$$$$$$$ $$ |  $$ $$ /  $$ | \n                                                   $$ |  $$   ____$$ |  $$ $$ |  $$ | \n                                                   $$ |  \\$$$$$$$\\$$ |  $$ \\$$$$$$$ | \n                                                   \\__|   \\_______\\__|  \\__|\\____$$ | \n                                                                           $$\\   $$ | \n                                                                           \\$$$$$$  | \n	    [EDC200]$$$$$$\\  $$$$$$\\ $$\\      $$$$$$$\\[-]         $$$$$$\\                      \\______/                 $$\\\n	   [EDC200]$$  __$$\\$$  __$$\\$$ |     $$  __$$\\[-]       $$  __$$\\                                              $$ | \n	   [EDC200]$$ /  \\__$$ /  $$ $$ |     $$ |  $$ |[-]      $$ /  $$ |$$$$$$$\\ $$$$$$$\\ $$$$$$\\ $$\\   $$\\$$$$$$$\\$$$$$$\\\n	   [EDC200]$$ |$$$$\\$$ |  $$ $$ |     $$ |  $$ |[-]      $$$$$$$$ $$  _____$$  _____$$  __$$\\$$ |  $$ $$  __$$\\_$$  _| \n	   [EDC200]$$ |\\_$$ $$ |  $$ $$ |     $$ |  $$ |[-]      $$  __$$ $$ /     $$ /     $$ /  $$ $$ |  $$ $$ |  $$ |$$ |\n	   [EDC200]$$ |  $$ $$ |  $$ $$ |     $$ |  $$ |[-]      $$ |  $$ $$ |     $$ |     $$ |  $$ $$ |  $$ $$ |  $$ |$$ |$$\\\n	   [EDC200]\\$$$$$$  |$$$$$$  $$$$$$$$\\$$$$$$$  |[-]      $$ |  $$ \\$$$$$$$\\\\$$$$$$$\\\\$$$$$$  \\$$$$$$  $$ |  $$ |\\$$$$  | \n	    [EDC200]\\______/ \\______/\\________\\_______/[-]       \\__|  \\__|\\_______|\\_______|\\______/ \\______/\\__|  \\__| \\____/\n\n                                                         T O   R E M O V E   T H I S   A D \n                                           * SEND A PM TO ACCELEVI IN THE OFFICIAL FENGLEE FORUMS TO KNOW MORE *" ;
-        #endif
+            str = "\n\n                                                   P L E A S E   B U Y  A\n\n\n                                                   $$$$$$$$\\\n                                                   $$  _____|\n                                                   $$ |   $$$$$$\\ $$$$$$$\\  $$$$$$\\\n                                                   $$$$$\\$$  __$$\\$$  __$$\\$$  __$$\\\n                                                   $$  __$$$$$$$$ $$ |  $$ $$ /  $$ | \n                                                   $$ |  $$   ____$$ |  $$ $$ |  $$ | \n                                                   $$ |  \\$$$$$$$\\$$ |  $$ \\$$$$$$$ | \n                                                   \\__|   \\_______\\__|  \\__|\\____$$ | \n                                                                           $$\\   $$ | \n                                                                           \\$$$$$$  | \n	    [EDC200]$$$$$$\\  $$$$$$\\ $$\\      $$$$$$$\\[-]         $$$$$$\\                      \\______/                 $$\\\n	   [EDC200]$$  __$$\\$$  __$$\\$$ |     $$  __$$\\[-]       $$  __$$\\                                              $$ | \n	   [EDC200]$$ /  \\__$$ /  $$ $$ |     $$ |  $$ |[-]      $$ /  $$ |$$$$$$$\\ $$$$$$$\\ $$$$$$\\ $$\\   $$\\$$$$$$$\\$$$$$$\\\n	   [EDC200]$$ |$$$$\\$$ |  $$ $$ |     $$ |  $$ |[-]      $$$$$$$$ $$  _____$$  _____$$  __$$\\$$ |  $$ $$  __$$\\_$$  _| \n	   [EDC200]$$ |\\_$$ $$ |  $$ $$ |     $$ |  $$ |[-]      $$  __$$ $$ /     $$ /     $$ /  $$ $$ |  $$ $$ |  $$ |$$ |\n	   [EDC200]$$ |  $$ $$ |  $$ $$ |     $$ |  $$ |[-]      $$ |  $$ $$ |     $$ |     $$ |  $$ $$ |  $$ $$ |  $$ |$$ |$$\\\n	   [EDC200]\\$$$$$$  |$$$$$$  $$$$$$$$\\$$$$$$$  |[-]      $$ |  $$ \\$$$$$$$\\\\$$$$$$$\\\\$$$$$$  \\$$$$$$  $$ |  $$ |\\$$$$  | \n	    [EDC200]\\______/ \\______/\\________\\_______/[-]       \\__|  \\__|\\_______|\\_______|\\______/ \\______/\\__|  \\__| \\____/\n\n                                                         T O   R E M O V E   T H I S   A D \n                                           * SEND A PM TO ACCELEVI IN THE OFFICIAL FENGLEE FORUMS TO KNOW MORE *";
+#endif
         object[] args = new object[] { str };
         base.networkView.RPC("netShowHUDInfoTopLeft", RPCMode.All, args);
         GameObject obj2 = GameObject.Find("LabelInfoTopLeft");
@@ -2451,6 +2556,8 @@ public class FengMultiplayerScript : MonoBehaviour
             obj2.GetComponent<UILabel>().text = str;
         }
     }
+                 
+          
 
     private void ShowHUDInfoTopRight(string content)
     {
@@ -2933,6 +3040,7 @@ public class FengMultiplayerScript : MonoBehaviour
                         {
                             if (this.players[k] == null)
                             {
+                                
                                 this.players[k] = this.playersRegistered[j];
                                 object[] args = new object[] { k };
                                 base.networkView.RPC("TellPlayerHisNetworkplayerIndex", this.playersRegistered[j].networkplayer, args);
@@ -3585,6 +3693,7 @@ public class FengMultiplayerScript : MonoBehaviour
     struct Orange
     {
         public String orange;
+        public int numberoforange;
         public int kills;
         public int deaths;
     }
@@ -3592,6 +3701,7 @@ public class FengMultiplayerScript : MonoBehaviour
     struct Blue
     {
         public String blue;
+        public int numberofblue;
         public int kills;
         public int deaths;
     }
@@ -3707,6 +3817,7 @@ public class FengMultiplayerScript : MonoBehaviour
         obj2.transform.localPosition = new Vector3(0.5f, 1f, 0.02f);
     }
 
+    
 
 
 
