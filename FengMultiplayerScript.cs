@@ -10,10 +10,9 @@ using UnityEngine;
 public class FengMultiplayerScript : MonoBehaviour
 {
     public bool autoteam = false;
-    public int topkiller;
     public bool team = false;
-    public int orangeTeamkills;
-    public int blueTeamkills;
+    public int cyanTeamkills;
+    public int majentaTeamkills;
     private string vern = "1.6.2";
     private float calllaterDuration;
     private ArrayList chatContent;
@@ -106,14 +105,14 @@ public class FengMultiplayerScript : MonoBehaviour
     public int startVoteTime;
     public static int VoteTime = 30;
     public static Boolean Vote = true;
-    public int numoforange;
-    public int numofblue;
+    public int numofcyan;
+    public int numofmajenta;
     Vector3[] pos;
     List<BanInfo> Banlist = new List<BanInfo>();
     
-    List<Orange> Orangelist = new List<Orange>();
+    List<Cyan> Cyanlist = new List<Cyan>();
     
-    List<Blue> Bluelist = new List<Blue>();
+    List<Majenta> Majentalist = new List<Majenta>();
      #if DEBUG
         public bool lawn = false;
         public bool dick = false;
@@ -125,21 +124,7 @@ public class FengMultiplayerScript : MonoBehaviour
         deaths = 0,
         playtime = 0f,
         };
-    public void orangecalculated()
-     {
-        
-     Orange test = Orangelist.Find(x => x.kills ==  orangeTeamkills);
     
-
-     }
-    public void bluecalculated()
-    {
-
-        Blue test = Bluelist.Find(x => x.kills == blueTeamkills);
-        
-
-
-    }
 
 
     public void change(string name)
@@ -286,7 +271,7 @@ public class FengMultiplayerScript : MonoBehaviour
     #endif
     }
 #if Server
-    public void blueplayer(int playernumber)
+    public void majentaplayer(int playernumber)
     {
         int index = 0;
         while ((index < (this.players.Length - 1)))
@@ -300,18 +285,18 @@ public class FengMultiplayerScript : MonoBehaviour
         }
           if (index < (this.players.Length - 1))
         {
-            numofblue++;
-            Bluelist.Add(new Blue
+            numofmajenta++;
+            Majentalist.Add(new Majenta
             {
-                blue = this.players[index].networkplayer.ipAddress,
-                numberofblue=numofblue,
+                majenta = this.players[index].networkplayer.ipAddress,
+                numberofmajenta=numofmajenta,
                 kills = this.players[index].kills,
                 deaths = this.players[index].die,
             });
 
             }
     }
-    public void orangeplayer(int playernumber)
+    public void cyanplayer(int playernumber)
     {
         int index = 0;
         while ((index < (this.players.Length - 1)))
@@ -325,11 +310,12 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         if (index < (this.players.Length - 1))
         {
-            numoforange++;
-            Orangelist.Add(new Orange
+            
+            numofcyan++;
+            Cyanlist.Add(new Cyan
             {
-               orange = this.players[index].networkplayer.ipAddress,
-               numberoforange = numoforange,
+               cyan = this.players[index].networkplayer.ipAddress,
+               numberofcyan = numofcyan,
                 kills = this.players[index].kills,
                 deaths = this.players[index].die,
             });
@@ -501,17 +487,19 @@ public class FengMultiplayerScript : MonoBehaviour
                         base.networkView.RPC("showChatContent", info.sender, "[e39629]*Toggled AutoTeam Mode*[-]\n");
                     }
 
-                    if(cmd.StartsWith("blue"))
+                    if(cmd.StartsWith("majenta"))
+                    {
+                        int playernumber = Convert.ToInt32(cmd.Substring(7));
+                        majentaplayer(playernumber);
+                        this.players[i].majenta = true;
+                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to majenta team*[-]\n");
+                    }
+                    if (cmd.StartsWith("cyan"))
                     {
                         int playernumber = Convert.ToInt32(cmd.Substring(4));
-                        blueplayer(playernumber);
-                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to blue team*[-]\n");
-                    }
-                    if (cmd.StartsWith("orange"))
-                    {
-                        int playernumber = Convert.ToInt32(cmd.Substring(6));
-                        orangeplayer(playernumber);
-                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to orange team*[-]\n");
+                        cyanplayer(playernumber);
+                        this.players[i].cyan = true;
+                        base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to cyan team*[-]\n");
                     }
                     if (cmd.StartsWith("kick"))
                     {
@@ -970,6 +958,7 @@ public class FengMultiplayerScript : MonoBehaviour
 
     public void Disconnect()
     {
+        
         Network.Disconnect();
         Screen.lockCursor = false;
         Screen.showCursor = true;
@@ -1833,17 +1822,18 @@ public class FengMultiplayerScript : MonoBehaviour
                         DebugConsole.Log("new comer ID : " + networkPlayer.ToString() + " my ID : " + base.networkView.owner.ToString() + "my IP: " + info.playerIP);
                         base.networkView.RPC("TellPlayerHisNetworkplayerIndex", networkPlayer, new object[] { num });
                         if (team)
-                            Orangelist.Exists(x => x.orange == networkPlayer.ipAddress);
-                        Bluelist.Exists(x => x.blue == networkPlayer.ipAddress);
-                        if (numofblue < numoforange)
                         {
-                            blueplayer(Convert.ToInt32(args[1]));
+                            if (numofmajenta < numofcyan)
+                            {
+                                this.players[num].cyan = true;
+                                numofmajenta++;
+                            }
+                            else
+                            {
+                                this.players[num].majenta = true;
+                                numofcyan++;
+                            }
                         }
-                        else
-                        {
-                            orangeplayer(Convert.ToInt32(args[1]));
-                        }
-                            
                         StartCoroutine(YourFunction(num));
                         break;
                     }
@@ -1946,6 +1936,17 @@ public class FengMultiplayerScript : MonoBehaviour
                     if (this.isPublicGame)
                         this.playersRegistered[j] = null;
                     #endif
+                    if (team)
+                    {
+                        if (this.players[j].cyan)
+                        {
+                            numofcyan--;
+                        }
+                        else
+                        {
+                            numofmajenta--;
+                        }
+                    }
                     this.playerWhoTheFuckIsDead("-1");
                     num2 = j;
                     break;
@@ -2072,6 +2073,18 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             player.assistancePt++;
         }
+        if (team)
+        {
+            if (player.cyan==true)
+            {
+                cyanTeamkills++;
+            }
+            else
+            {
+                majentaTeamkills++;
+            }
+        }
+
     }
 
     public void playerWhoTheFuckIsDead(string id)
@@ -2263,11 +2276,7 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             if (this.players[i] != null)
             {
-                if(autoteam)
-                {
-                    this.players[0] > this.players[1]
-                    if(this.players[i].kills > this.players[i].kills)
-                }
+       
                 if (players[i].SET)
                 {
                     this.players[i].dead = false;
@@ -2464,34 +2473,24 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             if (this.players[i] != null)
             {
-                if (this.players[i].dead)
+                
+                
+                if(this.players[i].cyan)
                 {
-                    str = str + "[ff0000]";
-                }
-                if (Orangelist.Exists(x => x.orange == this.players[i].networkplayer.ipAddress))
-                {
-                    Orange test = Orangelist.Find(x => x.orange == this.players[i].networkplayer.ipAddress);
+                    str = str + "[58FAF4]";
+                    if (this.players[i].dead)
                     {
-                        str = str + "[58FAF4]";
+                        str = str + "[ff0000]";
                     }
-                }
-                if (Bluelist.Exists(x => x.blue == this.players[i].networkplayer.ipAddress))
-                {
-                    Blue test2 = Bluelist.Find(x => x.blue == this.players[i].networkplayer.ipAddress);
+                }else
+                     if(this.players[i].majenta)
                     {
-
-                        str = str + "[FA58F4 ]";
-
+                    str = str + "[FA58F4]";
+                    if (this.players[i].dead)
+                    {
+                        str = str + "[ff0000]";
                     }
-                }
-                /*if(this.players[i].orange)
-                {
-                    str = str + "[ff8000]";
-                }
-                if(this.players[i].blue)
-                {
-                    str = str + "[0000FF]";
-                }*/
+                     }
 
                 string str2 = str;
                 object[] objArray1 = new object[] { str2, "[", this.players[i].id, "]", this.players[i].name, ":", this.players[i].kills, "/", this.players[i].die, "/", this.players[i].maxDamage, "/", this.players[i].totalDamage, "/", this.players[i].assistancePt };
@@ -2502,30 +2501,15 @@ public class FengMultiplayerScript : MonoBehaviour
                 {
                     str = str + "[-]";
                 }
-                if (Orangelist.Exists(x => x.orange == this.players[i].networkplayer.ipAddress))
-                {
-                    Orange test3 = Orangelist.Find(x => x.orange == this.players[i].networkplayer.ipAddress);
-                    {
-                        str = str + "[-]";
-                    }
-                }
-                if (Bluelist.Exists(x => x.blue == this.players[i].networkplayer.ipAddress))
-                {
-                    Blue test4 = Bluelist.Find(x => x.blue == this.players[i].networkplayer.ipAddress);
-                    {
-
-                        str = str + "[-]";
-
-                    }
-                }
-                /*if (this.players[i].orange)
+                
+                if (this.players[i].cyan)
             {
                 str = str + "[-]";
             } 
-            if (this.players[i].blue)
+            if (this.players[i].majenta)
             {
                 str = str + "[-]";
-            }*/
+            }
                 GameObject[] player = GameObject.FindGameObjectsWithTag("Player");
                 foreach (GameObject obj3 in player)
                 {
@@ -2563,7 +2547,7 @@ public class FengMultiplayerScript : MonoBehaviour
     {
         if(this.team)
         {
-            content = content + "\nOrange Team Kills: " + orangeTeamkills + "\n Blue Team Kills " + blueTeamkills;
+            content = content + "\nCyan Team Kills: " + cyanTeamkills + "\n Majenta Team Kills " + majentaTeamkills;
         }
         if (this.showhp)
         {
@@ -3254,6 +3238,7 @@ public class FengMultiplayerScript : MonoBehaviour
 
     private void Update()
     {
+
         if (currentVote != null)
         {
             if (startVoteTime <= Time.time)
@@ -3566,16 +3551,32 @@ public class FengMultiplayerScript : MonoBehaviour
                         this.ShowHUDInfoTopRightMAPNAME("\n" + Application.loadedLevelName + " : " + str11);
                     }
                 }
-                if (this.isLosing)
+                //for (int j = 0; j < this.numberOfPlayers; j++)
+                if (this.isLosing /*|| this.players[j].cyan && this.players[j].dead || this.players[j].majenta && this.players[j].dead*/)
                 {
-                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)
+                     if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)
                     {
-                        this.ShowHUDInfoCenter(string.Concat(new object[] { "Survive ", this.wave, " Waves!\nGame Restart in ", (int) this.gameEndCD, "s\n\n" }));
+                        this.ShowHUDInfoCenter(string.Concat(new object[] { "Survive ", this.wave, " Waves!\nGame Restart in ", (int)this.gameEndCD, "s\n\n" }));
                     }
                     else
                     {
-                        this.ShowHUDInfoCenter("Humanity Fail!\nAgain!\nGame Restart in " + ((int) this.gameEndCD) + "s\n\n");
-                    }
+                        this.ShowHUDInfoCenter("Humanity Fail!\nAgain!\nGame Restart in " + ((int)this.gameEndCD) + "s\n\n");
+                    }/*
+                    else
+                    {
+                        if (team)
+                        {
+                            if (this.players[j].cyan && this.players[j].dead)
+                            {
+                                this.ShowHUDInfoCenter("Majenta team wins by death of Cyan " + ((int)this.gameEndCD) + "s\n\n");
+                            }
+                            if (this.players[j].majenta && this.players[j].dead)
+                            {
+                                this.ShowHUDInfoCenter("Cyan team wins by death of Majenta " + ((int)this.gameEndCD) + "s\n\n");
+                            }
+                        }*/
+                        
+                    
                     this.gameEndCD -= Time.deltaTime;
                     if (this.gameEndCD <= 0f)
                     {
@@ -3604,7 +3605,21 @@ public class FengMultiplayerScript : MonoBehaviour
                 {
                     if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)
                     {
-                        this.ShowHUDInfoCenter("Survive All Waves!\nGame Restart in " + ((int) this.gameEndCD) + "s\n\n");
+                        if (team)
+                        {
+                            if (this.majentaTeamkills > this.cyanTeamkills)
+                            {
+                                this.ShowHUDInfoCenter("Survive All Waves! Majenta team wins " + ((int)this.majentaTeamkills) + " to " + ((int)this.cyanTeamkills) + "\nGame Restart in " + ((int)this.gameEndCD) + "s\n\n");
+                            }
+                            else
+                            {
+                                this.ShowHUDInfoCenter("Survive All Waves! Cyan team wins " + ((int)this.majentaTeamkills) + " to " + ((int)this.cyanTeamkills) + "\nGame Restart in " + ((int)this.gameEndCD) + "s\n\n");
+                            }
+                        }
+                        else
+                        {
+                            this.ShowHUDInfoCenter("Survive All Waves! Majenta team wins by\nGame Restart in " + ((int)this.gameEndCD) + "s\n\n");
+                        }
                     }
                     else
                     {
@@ -3690,18 +3705,18 @@ public class FengMultiplayerScript : MonoBehaviour
         public String reason;
     }
     [Serializable] //needs to be marked as serializable
-    struct Orange
+    struct Cyan
     {
-        public String orange;
-        public int numberoforange;
+        public String cyan;
+        public int numberofcyan;
         public int kills;
         public int deaths;
     }
     [Serializable] //needs to be marked as serializable
-    struct Blue
+    struct Majenta
     {
-        public String blue;
-        public int numberofblue;
+        public String majenta;
+        public int numberofmajenta;
         public int kills;
         public int deaths;
     }
