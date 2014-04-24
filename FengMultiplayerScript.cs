@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections; 
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -11,12 +11,12 @@ public class FengMultiplayerScript : MonoBehaviour
 {
     public bool cyanwin = false;
     public bool majentawin = false;
-    public int deadcyan;
-    public int deadmajenta;
-    public bool autoteam = false;
+    public int deadcyan = 0;
+    public int deadmajenta = 0;
+    public Balance_TYPE autoteam = Balance_TYPE.Skill;
     public bool team = false;
-    public int cyanTeamkills;
-    public int majentaTeamkills;
+    public int cyanTeamkills = 0;
+    public int majentaTeamkills = 0;
     private string vern = "1.6.2";
     private float calllaterDuration;
     private ArrayList chatContent;
@@ -113,10 +113,6 @@ public class FengMultiplayerScript : MonoBehaviour
     public int numofmajenta;
     Vector3[] pos;
     List<BanInfo> Banlist = new List<BanInfo>();
-    
-    List<Cyan> Cyanlist = new List<Cyan>();
-    
-    List<Majenta> Majentalist = new List<Majenta>();
      #if DEBUG
         public bool lawn = false;
         public bool dick = false;
@@ -287,15 +283,9 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         if (index < (this.players.Length - 1))
         {
-            numofmajenta++;
-            Majentalist.Add(new Majenta
-            {
-                majenta = this.players[index].networkplayer.ipAddress,
-                numberofmajenta=numofmajenta,
-                kills = this.players[index].kills,
-                deaths = this.players[index].die,
-            });
-
+            this.players[index].majenta = true;
+            this.numofmajenta++;
+            this.numofcyan--;
         }
     }
     public void cyanplayer(int playernumber)
@@ -312,16 +302,9 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         if (index < (this.players.Length - 1))
         {
-            
-            numofcyan++;
-            Cyanlist.Add(new Cyan
-            {
-               cyan = this.players[index].networkplayer.ipAddress,
-               numberofcyan = numofcyan,
-               kills = this.players[index].kills,
-               deaths = this.players[index].die,
-            });
-
+            this.players[index].cyan = true;
+            this.numofcyan++;
+            this.numofmajenta--;
         }
     }
     public void banplayer(int playernumber , int length,string rea)
@@ -493,14 +476,12 @@ public class FengMultiplayerScript : MonoBehaviour
                     {
                         int playernumber = Convert.ToInt32(cmd.Substring(7));
                         majentaplayer(playernumber);
-                        this.players[i].majenta = true;
                         base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to majenta team*[-]\n");
                     }
                     if (cmd.StartsWith("cyan"))
                     {
                         int playernumber = Convert.ToInt32(cmd.Substring(4));
                         cyanplayer(playernumber);
-                        this.players[i].cyan = true;
                         base.networkView.RPC("showChatContent", info.sender, "[e39629]*Added player to cyan team*[-]\n");
                     }
                     if (cmd.StartsWith("kick"))
@@ -802,11 +783,11 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         if(dictionary.ContainsKey("AutoTeam"))
         {
-            autoteam = dictionary["AutoTeam"].ToLower().Equals("true");
+            //autoteam = dictionary["AutoTeam"].ToLower().Equals("true");
         }
         if(dictionary.ContainsKey("Team"))
         {
-            team = dictionary["Team"].ToLower().Equals("true");
+            this.team = dictionary["Team"].ToLower().Equals("true");
         }
         if(dictionary.ContainsKey("VOTETime"))
         {
@@ -1824,17 +1805,18 @@ public class FengMultiplayerScript : MonoBehaviour
                         this.playersRegistered[num] = info;
                         DebugConsole.Log("new comer ID : " + networkPlayer.ToString() + " my ID : " + base.networkView.owner.ToString() + "my IP: " + info.playerIP);
                         base.networkView.RPC("TellPlayerHisNetworkplayerIndex", networkPlayer, new object[] { num });
-                        if (team)
+                        if (this.team)
                         {
-                            if (numofmajenta < numofcyan)
+                            if (this.numofmajenta < this.numofcyan)
                             {
-                                this.players[num].cyan = true;
-                                numofmajenta++;
+                                this.players[num].majenta = true;
+                                this.numofmajenta++;
+                                
                             }
                             else
                             {
-                                this.players[num].majenta = true;
-                                numofcyan++;
+                                this.players[num].cyan = true;
+                                this.numofcyan++;
                             }
                         }
                         StartCoroutine(YourFunction(num));
@@ -1933,23 +1915,25 @@ public class FengMultiplayerScript : MonoBehaviour
             {
                 if ((this.players[j] != null) && (this.players[j].id == networkPlayer.ToString()))
                 {
+                    #if Server
+                    if (this.team)
+                    {
+                        if (this.players[j].cyan)
+                        {
+                            this.numofcyan--;
+                        }
+                        else
+                        {
+                            this.numofmajenta--;
+                        }
+                    }
+                    #endif
                     this.players[j] = null;
                     #if Server
                     this.waittospawn[j] = true;
                     if (this.isPublicGame)
                         this.playersRegistered[j] = null;
                     #endif
-                    if (team)
-                    {
-                        if (this.players[j].cyan)
-                        {
-                            numofcyan--;
-                        }
-                        else
-                        {
-                            numofmajenta--;
-                        }
-                    }
                     this.playerWhoTheFuckIsDead("-1");
                     num2 = j;
                     break;
@@ -2007,10 +1991,10 @@ public class FengMultiplayerScript : MonoBehaviour
             info3.name = this.myLastHeroName;
             info3.id = base.networkView.owner.ToString();
             info3.resourceId = this.myLastHero;
-            if(team && this.isDedicated == false)
+            if(this.team && this.isDedicated == false)
             {
                 info3.cyan = true;
-                numofcyan++;
+                this.numofcyan++;
             }
             info = info3;
             this.players[0] = info;
@@ -2075,11 +2059,29 @@ public class FengMultiplayerScript : MonoBehaviour
     public void playerKillInfoUpdate(PlayerInfo player, int dmg)
     {
         player.kills++;
-            if(player.cyan)
-            {cyanTeamkills++;}
+        if(player.cyan)
+        {
+             this.cyanTeamkills++;
+        }
         if(player.majenta)
         {
-            majentaTeamkills++;
+            this.majentaTeamkills++;
+        }
+        if (this.deadcyan == this.numofcyan)
+        {
+            if (this.cyanTeamkills <= this.majentaTeamkills)
+            {
+                this.majentawin = true;
+                this.gameLose();
+            }
+        }
+        if (this.deadmajenta == this.numofmajenta)
+        {
+            if (this.cyanTeamkills >= this.majentaTeamkills)
+            {
+                this.cyanwin = true;
+                this.gameLose();
+            }
         }
         player.maxDamage = Mathf.Max(dmg, player.maxDamage);
         player.totalDamage += dmg;
@@ -2091,11 +2093,11 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             if (player.cyan==true)
             {
-                cyanTeamkills++;
+                 this.cyanTeamkills++;
             }
             else
             {
-                majentaTeamkills++;
+                this.majentaTeamkills++;
             }
         }*/
 
@@ -2121,14 +2123,16 @@ public class FengMultiplayerScript : MonoBehaviour
                     this.players[i].dead = true;
                     PlayerInfo info1 = this.players[i];
                     info1.die++;
+                    #if Server
                     if(this.players[i].cyan)
                     {
-                        deadcyan++;
+                        this.deadcyan++;
                     }
                     else
                     {
-                        deadmajenta++;
+                        this.deadmajenta++;
                     }
+                    #endif
                     num3 = i;
                 }
                 num++;
@@ -2144,15 +2148,24 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         else if (((IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.KILL_TITAN) || (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)) || (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.BOSS_FIGHT_CT))
         {
-            if(deadcyan == numofcyan)
+            if (this.team)
             {
-                this.majentawin = true;
-                this.gameLose();
-            }
-            if(deadmajenta == numofmajenta)
-            {
-                this.cyanwin = true;
-                this.gameLose();
+                if (this.deadcyan == this.numofcyan)
+                {
+                    if (this.cyanTeamkills <= this.majentaTeamkills)
+                    {
+                        this.majentawin = true;
+                        this.gameLose();
+                    }
+                }
+                if (this.deadmajenta == this.numofmajenta)
+                {
+                    if (this.cyanTeamkills >= this.majentaTeamkills)
+                    {
+                        this.cyanwin = true;
+                        this.gameLose();
+                    }
+                }
             }
             if (num == num2)
             {
@@ -2310,6 +2323,93 @@ public class FengMultiplayerScript : MonoBehaviour
         this.isPlayer1Winning = false;
         this.isPlayer2Winning = false;
         this.wave = 1;
+        #region ballancesize
+        if (this.autoteam == Balance_TYPE.Size && this.team)
+        {
+            if(this.numofcyan > this.numofmajenta + 1)
+            {
+                int toswitch = (this.numofcyan - this.numofmajenta) / 2;
+                int ind = 0;
+                while(toswitch > 0)
+                {
+                    if(this.players[ind].cyan)
+                    {
+                        this.players[ind].cyan = false;
+                        this.numofcyan--;
+                        this.players[ind].majenta = true;
+                        this.numofmajenta++;
+                        toswitch--;
+                    }
+                    ind++;
+                }
+            }
+            else
+            if (this.numofmajenta > this.numofcyan + 1)
+            {
+                int toswitch = (this.numofmajenta - this.numofcyan) / 2;
+                int ind = 0;
+                while (toswitch > 0)
+                {
+                    if (this.players[ind].majenta)
+                    {
+                        this.players[ind].majenta = false;
+                        this.numofmajenta--;
+                        this.players[ind].cyan = true;
+                        this.numofcyan++;
+                        toswitch--;
+                    }
+                    ind++;
+                }
+            }
+        }
+        #endregion
+        #region ballanceskill
+        if (this.autoteam == Balance_TYPE.Skill)
+        {
+            int teamc = 0;
+            int teamm = 0;
+            foreach (PlayerInfo a in this.players)
+            {
+                if (a != null)
+                {
+                    if (a.cyan)
+                        teamc += a.kills;
+                    if (a.majenta)
+                        teamm += a.kills;
+                }
+            }
+            foreach (PlayerInfo a in this.players)
+            {
+                if (a != null)
+                {
+                    if (a.cyan)
+                    {
+                        if ((teamm + a.kills + 7) < (teamc - a.kills))
+                        {
+                            a.majenta = true;
+                            a.cyan = false;
+                            teamc -= a.kills;
+                            teamm += a.kills;
+                            this.numofcyan--;
+                            this.numofmajenta++;
+                        }
+                    }
+                    if (a.majenta)
+                    {
+                        if ((teamc + a.kills + 7) < (teamm - a.kills))
+                        {
+                            a.majenta = false;
+                            a.cyan = true;
+                            teamc += a.kills;
+                            teamm -= a.kills;
+                            this.numofcyan++;
+                            this.numofmajenta--;
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
         for (int i = 0; i < this.numberOfPlayers; i++)
         {
             if (this.players[i] != null)
@@ -2590,7 +2690,7 @@ public class FengMultiplayerScript : MonoBehaviour
         if(this.team)
                    
         {
-            content = content + "\n[58FAF4]Cyan Team Kills:[-] " + cyanTeamkills + "\n [FA58F4]Majenta Team Kills:[-] " + majentaTeamkills;
+            content = content + "\n[58FAF4]Cyan Team Kills:[-] " + this.cyanTeamkills + "\n [FA58F4]Majenta Team Kills:[-] " + this.majentaTeamkills;
         }
         if (this.showhp)
         {
@@ -3597,38 +3697,27 @@ public class FengMultiplayerScript : MonoBehaviour
                 //for (int j = 0; j < this.numberOfPlayers; j++)
                 if (this.isLosing /*|| this.players[j].cyan && this.players[j].dead || this.players[j].majenta && this.players[j].dead*/)
                 {
-                     if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && team){
-                        if(team){
-                            if(cyanwin){
-                             this.ShowHUDInfoCenter("Cyan team wins by death of Majenta " + ((int)this.gameEndCD) + "s\n\n");
-                         }
-                            if(majentawin)
+                     if(this.team)
+                     {
+                            if(this.cyanwin)
                             {
-                              this.ShowHUDInfoCenter("Majenta team wins by death of Cyan " + ((int)this.gameEndCD) + "s\n\n");
+                                this.ShowHUDInfoCenter("Cyan team wins by death of Majenta with " + this.cyanTeamkills +" kills " + ((int)this.gameEndCD) + "s\n\n");
                             }
-                        }
-                     }
-                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && !team){
+                            if(this.majentawin)
+                            {
+                              this.ShowHUDInfoCenter("Majenta team wins by death of Cyan " + this.majentaTeamkills +" kills " + ((int)this.gameEndCD) + "s\n\n");
+                            }
+                    }
+                    else 
+                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)
+                    {
                         this.ShowHUDInfoCenter(string.Concat(new object[] { "Survive ", this.wave, " Waves!\nGame Restart in ", (int)this.gameEndCD, "s\n\n" }));
                     }
                     else
                     {
                         this.ShowHUDInfoCenter("Humanity Fail!\nAgain!\nGame Restart in " + ((int)this.gameEndCD) + "s\n\n");
-                    }/*
-                    else
-                    {
-                        if (team)
-                        {
-                            if (this.players[j].cyan && this.players[j].dead)
-                            {
-                                this.ShowHUDInfoCenter("Majenta team wins by death of Cyan " + ((int)this.gameEndCD) + "s\n\n");
-                            }
-                            if (this.players[j].majenta && this.players[j].dead)
-                            {
-                                this.ShowHUDInfoCenter("Cyan team wins by death of Majenta " + ((int)this.gameEndCD) + "s\n\n");
-                            }
-                        }*/
-                        
+                    }
+                     
                     
                     this.gameEndCD -= Time.deltaTime;
                     if (this.gameEndCD <= 0f)
@@ -3656,9 +3745,9 @@ public class FengMultiplayerScript : MonoBehaviour
                 }
                 else if (this.isWinning)
                 {
-                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && team)
+                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && this.team)
                     {
-                        if (team)
+                        if (this.team)
                         {
                             if (this.majentaTeamkills > this.cyanTeamkills)
                             {
@@ -3671,7 +3760,7 @@ public class FengMultiplayerScript : MonoBehaviour
                         }
                        
                     }
-                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && !team)
+                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && !this.team)
                     {
                         this.ShowHUDInfoCenter("Humanity Win!\nGame Restart in " + ((int) this.gameEndCD) + "s\n\n");
                     }

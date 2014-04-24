@@ -61,6 +61,7 @@
       <HintPath>.\Assembly-UnityScript-firstpass.dll</HintPath>
     </Reference>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Balance_TYPE.cs" />
     <Compile Include="ConsoleInGame.cs" />
     <Compile Include="DebugConsole.cs.cs" />
     <Compile Include="Global.cs" />
