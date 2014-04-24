@@ -2010,6 +2010,7 @@ public class FengMultiplayerScript : MonoBehaviour
             if(team && this.isDedicated == false)
             {
                 info3.cyan = true;
+                numofcyan++;
             }
             info = info3;
             this.players[0] = info;
@@ -2299,6 +2300,8 @@ public class FengMultiplayerScript : MonoBehaviour
         this.majentawin = false;
         this.cyanTeamkills = 0;
         this.majentaTeamkills = 0;
+        this.deadmajenta = 0;
+        this.deadcyan = 0;
         this.isFirstMatch = false;
         this.timeElapse = 0f;
         this.timeTotal = 0f;
@@ -2315,8 +2318,6 @@ public class FengMultiplayerScript : MonoBehaviour
                 if (players[i].SET)
                 {
                     this.players[i].dead = false;
-                    deadcyan = 0;
-                    deadmajenta = 0;
                     #if Server
                     this.waittospawn[i] = false;
                     if(this.letpublic)
@@ -3145,8 +3146,6 @@ public class FengMultiplayerScript : MonoBehaviour
                 if ((this.players[i] != null) && (this.players[i].id == id))
                 {
                     this.players[i].dead = false;
-                    this.deadmajenta = 0;
-                    this.deadcyan = 0;
                     foreach(GameObject a in GameObject.FindGameObjectsWithTag("Player"))
                     {
                         if (a.networkView.owner.ToString() == id)
@@ -3693,8 +3692,6 @@ public class FengMultiplayerScript : MonoBehaviour
                     {
                         if (!this.isDedicated)
                         {
-                            if (team)
-                            { this.players[0].cyan = true; }
                             GameObject.Find("MainCamera").GetComponent<IN_GAME_MAIN_CAMERA>().gameOver = false;
                             this.SpawnPlayer(this.myLastHero, "playerRespawn");
                             this.players[0].dead = false;

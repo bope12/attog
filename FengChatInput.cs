@@ -198,6 +198,13 @@ public class FengChatInput : MonoBehaviour
                 {
                     GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().showChatContent("[e39629]*Afk Mode is now "+(!GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().isDedicated).ToString()+"*[-]\n");
                     GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().isDedicated = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().isDedicated ? false : true;
+                    GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().players[0].cyan = GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().isDedicated;
+                    if (GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().players[0].cyan)
+                    {
+                        GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().numofcyan++;
+                    }
+                    else
+                        GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().numofcyan--;
                 }
                 else if (this.mInput.text.StartsWith("/lava"))
                 {
