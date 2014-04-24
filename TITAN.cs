@@ -1591,6 +1591,7 @@ public class TITAN : MonoBehaviour
                     if (this.grabbedTarget != null)
                     {
                         this.grabbedTarget.networkView.RPC("netUngrabbed", RPCMode.All, new object[0]);
+                   
                         this.assistance = true;                          
                     }
                     this.netDie();

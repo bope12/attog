@@ -9,6 +9,10 @@ using UnityEngine;
 
 public class FengMultiplayerScript : MonoBehaviour
 {
+    public bool cyanwin = false;
+    public bool majentawin = false;
+    public int deadcyan;
+    public int deadmajenta;
     public bool autoteam = false;
     public bool team = false;
     public int cyanTeamkills;
@@ -2067,13 +2071,19 @@ public class FengMultiplayerScript : MonoBehaviour
     public void playerKillInfoUpdate(PlayerInfo player, int dmg)
     {
         player.kills++;
+            if(player.cyan)
+            {cyanTeamkills++;}
+        if(player.majenta)
+        {
+            majentaTeamkills++;
+        }
         player.maxDamage = Mathf.Max(dmg, player.maxDamage);
         player.totalDamage += dmg;
-        if(GameObject.Find("MultiplayerManager").GetComponent<TITAN>().assistance == true)
-        {
-            player.assistancePt++;
-        }
-        if (team)
+       // if(GameObject.Find("MultiplayerManager").GetComponent<TITAN>().assistance == true)
+      //  {
+       //     player.assistancePt++;
+       // }
+        /*if (team)
         {
             if (player.cyan==true)
             {
@@ -2083,7 +2093,7 @@ public class FengMultiplayerScript : MonoBehaviour
             {
                 majentaTeamkills++;
             }
-        }
+        }*/
 
     }
 
@@ -2107,6 +2117,14 @@ public class FengMultiplayerScript : MonoBehaviour
                     this.players[i].dead = true;
                     PlayerInfo info1 = this.players[i];
                     info1.die++;
+                    if(this.players[i].cyan)
+                    {
+                        deadcyan++;
+                    }
+                    else
+                    {
+                        deadmajenta++;
+                    }
                     num3 = i;
                 }
                 num++;
@@ -2122,6 +2140,16 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         else if (((IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.KILL_TITAN) || (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)) || (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.BOSS_FIGHT_CT))
         {
+            if(deadcyan == numofcyan)
+            {
+                this.majentawin = true;
+                this.gameLose();
+            }
+            if(deadmajenta == numofmajenta)
+            {
+                this.cyanwin = true;
+                this.gameLose();
+            }
             if (num == num2)
             {
                 this.gameLose();
@@ -2264,6 +2292,10 @@ public class FengMultiplayerScript : MonoBehaviour
     }
     public void restartGame()
     {
+        this.cyanwin = false;
+        this.majentawin = false;
+        this.cyanTeamkills = 0;
+        this.majentaTeamkills = 0;
         this.isFirstMatch = false;
         this.timeElapse = 0f;
         this.timeTotal = 0f;
@@ -2280,6 +2312,8 @@ public class FengMultiplayerScript : MonoBehaviour
                 if (players[i].SET)
                 {
                     this.players[i].dead = false;
+                    deadcyan = 0;
+                    deadmajenta = 0;
                     #if Server
                     this.waittospawn[i] = false;
                     if(this.letpublic)
@@ -2473,7 +2507,10 @@ public class FengMultiplayerScript : MonoBehaviour
         {
             if (this.players[i] != null)
             {
-                
+                if(this.players[i].dead)
+                {
+                    str = str + "[ff0000]";
+                }
                 
                 if(this.players[i].cyan)
                 {
@@ -2546,8 +2583,9 @@ public class FengMultiplayerScript : MonoBehaviour
     private void ShowHUDInfoTopRight(string content)
     {
         if(this.team)
+                   
         {
-            content = content + "\nCyan Team Kills: " + cyanTeamkills + "\n Majenta Team Kills " + majentaTeamkills;
+            content = content + "\n[58FAF4]Cyan Team Kills:[-] " + cyanTeamkills + "\n [FA58F4]Majenta Team Kills:[-] " + majentaTeamkills;
         }
         if (this.showhp)
         {
@@ -3103,6 +3141,8 @@ public class FengMultiplayerScript : MonoBehaviour
                 if ((this.players[i] != null) && (this.players[i].id == id))
                 {
                     this.players[i].dead = false;
+                    this.deadmajenta = 0;
+                    this.deadcyan = 0;
                     foreach(GameObject a in GameObject.FindGameObjectsWithTag("Player"))
                     {
                         if (a.networkView.owner.ToString() == id)
@@ -3554,8 +3594,18 @@ public class FengMultiplayerScript : MonoBehaviour
                 //for (int j = 0; j < this.numberOfPlayers; j++)
                 if (this.isLosing /*|| this.players[j].cyan && this.players[j].dead || this.players[j].majenta && this.players[j].dead*/)
                 {
-                     if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)
-                    {
+                     if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && team){
+                        if(team){
+                            if(cyanwin){
+                             this.ShowHUDInfoCenter("Cyan team wins by death of Majenta " + ((int)this.gameEndCD) + "s\n\n");
+                         }
+                            if(majentawin)
+                            {
+                              this.ShowHUDInfoCenter("Majenta team wins by death of Cyan " + ((int)this.gameEndCD) + "s\n\n");
+                            }
+                        }
+                     }
+                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && !team){
                         this.ShowHUDInfoCenter(string.Concat(new object[] { "Survive ", this.wave, " Waves!\nGame Restart in ", (int)this.gameEndCD, "s\n\n" }));
                     }
                     else
@@ -3603,7 +3653,7 @@ public class FengMultiplayerScript : MonoBehaviour
                 }
                 else if (this.isWinning)
                 {
-                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE)
+                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && team)
                     {
                         if (team)
                         {
@@ -3616,12 +3666,9 @@ public class FengMultiplayerScript : MonoBehaviour
                                 this.ShowHUDInfoCenter("Survive All Waves! Cyan team wins " + ((int)this.majentaTeamkills) + " to " + ((int)this.cyanTeamkills) + "\nGame Restart in " + ((int)this.gameEndCD) + "s\n\n");
                             }
                         }
-                        else
-                        {
-                            this.ShowHUDInfoCenter("Survive All Waves! Majenta team wins by\nGame Restart in " + ((int)this.gameEndCD) + "s\n\n");
-                        }
+                       
                     }
-                    else
+                    if (IN_GAME_MAIN_CAMERA.gamemode == GAMEMODE.SURVIVE_MODE && !team)
                     {
                         this.ShowHUDInfoCenter("Humanity Win!\nGame Restart in " + ((int) this.gameEndCD) + "s\n\n");
                     }
@@ -3650,6 +3697,8 @@ public class FengMultiplayerScript : MonoBehaviour
                     }
                     else
                     {
+                        if(team)
+                        { this.players[0].cyan = true; }
                         GameObject.Find("MainCamera").GetComponent<IN_GAME_MAIN_CAMERA>().gameOver = false;
                         this.SpawnPlayer(this.myLastHero, "playerRespawn");
                         GameObject.Find("MainCamera").GetComponent<IN_GAME_MAIN_CAMERA>().gameOver = false;
