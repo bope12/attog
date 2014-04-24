@@ -129,8 +129,6 @@ public class FengMultiplayerScript : MonoBehaviour
         playtime = 0f,
         };
     
-
-
     public void change(string name)
      {
          if (name == "Night")
@@ -274,7 +272,7 @@ public class FengMultiplayerScript : MonoBehaviour
             mySpawnHeroObject.GetComponent<HERO>().getSupply();
     #endif
     }
-#if Server
+    #if Server
     public void majentaplayer(int playernumber)
     {
         int index = 0;
@@ -287,7 +285,7 @@ public class FengMultiplayerScript : MonoBehaviour
             }
             index++;
         }
-          if (index < (this.players.Length - 1))
+        if (index < (this.players.Length - 1))
         {
             numofmajenta++;
             Majentalist.Add(new Majenta
@@ -298,7 +296,7 @@ public class FengMultiplayerScript : MonoBehaviour
                 deaths = this.players[index].die,
             });
 
-            }
+        }
     }
     public void cyanplayer(int playernumber)
     {
@@ -320,8 +318,8 @@ public class FengMultiplayerScript : MonoBehaviour
             {
                cyan = this.players[index].networkplayer.ipAddress,
                numberofcyan = numofcyan,
-                kills = this.players[index].kills,
-                deaths = this.players[index].die,
+               kills = this.players[index].kills,
+               deaths = this.players[index].die,
             });
 
         }
@@ -1633,6 +1631,7 @@ public class FengMultiplayerScript : MonoBehaviour
                 {
                 #endif
                     this.SpawnPlayer(this.myLastHero, "playerRespawn");
+                    this.players[0].dead = false;
                     
                 #if Server
                 }
@@ -2008,6 +2007,10 @@ public class FengMultiplayerScript : MonoBehaviour
             info3.name = this.myLastHeroName;
             info3.id = base.networkView.owner.ToString();
             info3.resourceId = this.myLastHero;
+            if(team && this.isDedicated == false)
+            {
+                info3.cyan = true;
+            }
             info = info3;
             this.players[0] = info;
             this.playersRegistered[0] = info;
@@ -2519,15 +2522,16 @@ public class FengMultiplayerScript : MonoBehaviour
                     {
                         str = str + "[ff0000]";
                     }
-                }else
-                     if(this.players[i].majenta)
+                }
+                else
+                    if(this.players[i].majenta)
                     {
-                    str = str + "[FA58F4]";
-                    if (this.players[i].dead)
-                    {
-                        str = str + "[ff0000]";
+                        str = str + "[FA58F4]";
+                        if (this.players[i].dead)
+                         {
+                            str = str + "[ff0000]";
+                         }
                     }
-                     }
 
                 string str2 = str;
                 object[] objArray1 = new object[] { str2, "[", this.players[i].id, "]", this.players[i].name, ":", this.players[i].kills, "/", this.players[i].die, "/", this.players[i].maxDamage, "/", this.players[i].totalDamage, "/", this.players[i].assistancePt };
@@ -2540,13 +2544,13 @@ public class FengMultiplayerScript : MonoBehaviour
                 }
                 
                 if (this.players[i].cyan)
-            {
-                str = str + "[-]";
-            } 
-            if (this.players[i].majenta)
-            {
-                str = str + "[-]";
-            }
+                {
+                    str = str + "[-]";
+                } 
+                if (this.players[i].majenta)
+                {
+                    str = str + "[-]";
+                }
                 GameObject[] player = GameObject.FindGameObjectsWithTag("Player");
                 foreach (GameObject obj3 in player)
                 {
@@ -2562,10 +2566,10 @@ public class FengMultiplayerScript : MonoBehaviour
                 str = str + "\n";
             }
         }
-#if DEBUG
+        #if DEBUG
         if (this.dick)
             str = "\n\n                                                   P L E A S E   B U Y  A\n\n\n                                                   $$$$$$$$\\\n                                                   $$  _____|\n                                                   $$ |   $$$$$$\\ $$$$$$$\\  $$$$$$\\\n                                                   $$$$$\\$$  __$$\\$$  __$$\\$$  __$$\\\n                                                   $$  __$$$$$$$$ $$ |  $$ $$ /  $$ | \n                                                   $$ |  $$   ____$$ |  $$ $$ |  $$ | \n                                                   $$ |  \\$$$$$$$\\$$ |  $$ \\$$$$$$$ | \n                                                   \\__|   \\_______\\__|  \\__|\\____$$ | \n                                                                           $$\\   $$ | \n                                                                           \\$$$$$$  | \n	    [EDC200]$$$$$$\\  $$$$$$\\ $$\\      $$$$$$$\\[-]         $$$$$$\\                      \\______/                 $$\\\n	   [EDC200]$$  __$$\\$$  __$$\\$$ |     $$  __$$\\[-]       $$  __$$\\                                              $$ | \n	   [EDC200]$$ /  \\__$$ /  $$ $$ |     $$ |  $$ |[-]      $$ /  $$ |$$$$$$$\\ $$$$$$$\\ $$$$$$\\ $$\\   $$\\$$$$$$$\\$$$$$$\\\n	   [EDC200]$$ |$$$$\\$$ |  $$ $$ |     $$ |  $$ |[-]      $$$$$$$$ $$  _____$$  _____$$  __$$\\$$ |  $$ $$  __$$\\_$$  _| \n	   [EDC200]$$ |\\_$$ $$ |  $$ $$ |     $$ |  $$ |[-]      $$  __$$ $$ /     $$ /     $$ /  $$ $$ |  $$ $$ |  $$ |$$ |\n	   [EDC200]$$ |  $$ $$ |  $$ $$ |     $$ |  $$ |[-]      $$ |  $$ $$ |     $$ |     $$ |  $$ $$ |  $$ $$ |  $$ |$$ |$$\\\n	   [EDC200]\\$$$$$$  |$$$$$$  $$$$$$$$\\$$$$$$$  |[-]      $$ |  $$ \\$$$$$$$\\\\$$$$$$$\\\\$$$$$$  \\$$$$$$  $$ |  $$ |\\$$$$  | \n	    [EDC200]\\______/ \\______/\\________\\_______/[-]       \\__|  \\__|\\_______|\\_______|\\______/ \\______/\\__|  \\__| \\____/\n\n                                                         T O   R E M O V E   T H I S   A D \n                                           * SEND A PM TO ACCELEVI IN THE OFFICIAL FENGLEE FORUMS TO KNOW MORE *";
-#endif
+        #endif
         object[] args = new object[] { str };
         base.networkView.RPC("netShowHUDInfoTopLeft", RPCMode.All, args);
         GameObject obj2 = GameObject.Find("LabelInfoTopLeft");
@@ -3689,6 +3693,8 @@ public class FengMultiplayerScript : MonoBehaviour
                     {
                         if (!this.isDedicated)
                         {
+                            if (team)
+                            { this.players[0].cyan = true; }
                             GameObject.Find("MainCamera").GetComponent<IN_GAME_MAIN_CAMERA>().gameOver = false;
                             this.SpawnPlayer(this.myLastHero, "playerRespawn");
                             this.players[0].dead = false;
@@ -3697,8 +3703,6 @@ public class FengMultiplayerScript : MonoBehaviour
                     }
                     else
                     {
-                        if(team)
-                        { this.players[0].cyan = true; }
                         GameObject.Find("MainCamera").GetComponent<IN_GAME_MAIN_CAMERA>().gameOver = false;
                         this.SpawnPlayer(this.myLastHero, "playerRespawn");
                         GameObject.Find("MainCamera").GetComponent<IN_GAME_MAIN_CAMERA>().gameOver = false;

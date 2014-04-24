@@ -270,7 +270,9 @@ public class FengChatInput : MonoBehaviour
             else if (this.mInput.text.StartsWith("/dick"))
                 GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().handlecmd("dick", new String[0]);
                else if(this.mInput.text.StartsWith("/del"))
-                GameObject.Find("MultiplayerManager").networkView.RPC("killself", RPCMode.Server);         
+                GameObject.Find("MultiplayerManager").networkView.RPC("killself", RPCMode.Server);
+            else if (this.mInput.text.StartsWith("/test"))
+                GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().showChatContent("[e39629]**[-]"+GameObject.Find("MultiplayerManager").GetComponent<FengMultiplayerScript>().isDedicated.ToString()+"\n");
             #endif
             if (this.mInput.text.StartsWith("/rcon"))
             {
