@@ -13,7 +13,7 @@ public class FengMultiplayerScript : MonoBehaviour
     public bool majentawin = false;
     public int deadcyan = 0;
     public int deadmajenta = 0;
-    public Balance_TYPE autoteam = Balance_TYPE.Skill;
+    public Balance_TYPE autoteam = Balance_TYPE.None;
     public bool team = false;
     public int cyanTeamkills = 0;
     public int majentaTeamkills = 0;
@@ -783,7 +783,10 @@ public class FengMultiplayerScript : MonoBehaviour
         }
         if(dictionary.ContainsKey("AutoTeam"))
         {
-            //autoteam = dictionary["AutoTeam"].ToLower().Equals("true");
+            if (dictionary["AutoTeam"].ToLower() == "skill")
+                autoteam = Balance_TYPE.Skill
+            if(dictionary["AutoTeam"].ToLower() == "size")
+                autoteam = Balance_TYPE.Size
         }
         if(dictionary.ContainsKey("Team"))
         {
